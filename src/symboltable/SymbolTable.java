@@ -1,5 +1,7 @@
 package symboltable;
 
+// Concrete implementation of a SymbolTable that allows clients to
+// add/remove bindings and scopes (i.e., construct the SymbolTable piecemeal).
 public class SymbolTable implements ISymbolTable
 {
     private Environment _root; 
@@ -30,6 +32,7 @@ public class SymbolTable implements ISymbolTable
         _current = env;
     }
 
+    // Get the SymbolInfo associated with the given id.
     public SymbolInfo getSymbol(String id) throws UnknownSymbolException
     {        
         Environment current = _current;
@@ -63,6 +66,7 @@ public class SymbolTable implements ISymbolTable
         _current.addChild(id, new Environment(_current));
     }
 
+    // Produces a prettily formatted String
     public String toString()
     {
         return toString(_root, 0);
@@ -73,13 +77,15 @@ public class SymbolTable implements ISymbolTable
         StringBuilder result = new StringBuilder();
         result.append("{\n");
 
+        // Get symbols at the current Environment 
         for (String name : current.getSymbols())
         {
             addTabs(result, level + 1);
             result.append(name); 
             result.append("\n");       
         }            
-        
+
+        // Recursively process child scopes        
         for (String name : current.getChildren())
         {
             addTabs(result, level + 1);
@@ -87,6 +93,7 @@ public class SymbolTable implements ISymbolTable
             result.append(' ');
             result.append(toString(current.getChild(name), level + 1));
         }
+
 
         addTabs(result, level);
         result.append("}\n");

@@ -5,22 +5,26 @@ import syntaxtree.*;
 
 import java.util.*;
 
+// Visitor implementation that builds a SymbolTable
+// Also recognizes redefinition errors
 public class BuildSymbolTableVisitor implements Visitor
 {
     private SymbolTable _symbolTable = new SymbolTable();
     private List<String> _errors = new ArrayList<String>();
 
+    // Returns the SymbolTable.
     public ISymbolTable getSymbolTable()
     {
         return _symbolTable;
     }
 
+    // Returns a list of redefinition errors encountered.
     public List<String> getErrors()
     {
         return _errors;
     }
 
-    // try to enter a scope in the SymbolTable
+    // Attempt to enter a child scope from the current scope in the SymbolTable.
     private void enterScope(String s)
     {
         // Just print out the error message for now. 
@@ -35,6 +39,8 @@ public class BuildSymbolTableVisitor implements Visitor
         }
     }
 
+    // Add a binding between the given symbol and its info, recordining
+    // a redefinition error if necessary.
     private void addBinding(String name, SymbolInfo info)
     {
         SymbolInfo old = _symbolTable.addBinding(name, info);
