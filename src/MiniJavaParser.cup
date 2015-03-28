@@ -85,6 +85,7 @@ var_decl_list ::=
 var_decl ::=
         type:t identifier:id SEMICOLON
         {: RESULT = new VarDecl(t, id); :}
+    |   type:t error SEMICOLON
     ;
 
 method_decl_list ::=
