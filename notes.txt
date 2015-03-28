@@ -1,0 +1,32 @@
+notes:
+    - each Method and Class need an Environment
+    - should we copy bindings from parent Environment into child Environments, or traverse during lookups?
+        - copying would be easier for inheritance (just copy method info)
+    - Tree structure is implicit in Environment (composite pattern)
+    - SymbolTable itself can maintain pointers to root & current Environment 
+
+structure:
+
+    - Environment
+        - has Map<String, SymbolInfo> (symbols)
+        - has List<Environment>  (children)
+        - has Environment (parent)
+
+        - internal to SymbolTable (not used elsewhere)
+
+    - SymbolTable
+        - has pointer to root Environment
+        - has pointer to current Environment
+        - can enterScope(id) (traverse current Environment child edge)
+        - can exitScope() (traverse current Environment parent edge)
+        - can addBinding(name, symbolInfo)
+            - maybe split into ISymbolTable interface and concrete (mutable) class?
+            - Visitor can use mutable concrete class to construct symbol tables, other clients can use interface
+
+
+    - SymbolInfo
+        - has a Symbol (JavaCUP class)
+        - has a Type (Class, Method, Variable)
+            - Method needs Return Type, Parameter List (list of types)
+            - Variables need Type
+            - Class needs Extended Types, Variables, Methods
