@@ -1,11 +1,14 @@
 import java_cup.runtime.*;
 import syntaxtree.*;
 
-parser code 
-{: 
+parser code
+{:
     MiniJavaLexer _lexer;
-    public MiniJavaParser(MiniJavaLexer lex) { super(lex); _lexer = lex; } 
-:}; 
+    public MiniJavaParser(MiniJavaLexer lex) { super(lex); _lexer = lex; }
+    public void syntax_error(java_cup.runtime.Symbol cur_token) {
+        System.err.println("Parse error at line " + cur_token.left + ", column " + cur_token.right);
+    }
+:};
 
 /* Preliminaries to set up and use the scanner.  */
 scan with {: return _lexer.next_token(); :};
@@ -43,11 +46,11 @@ precedence left NOT;
 precedence left LESS_THAN;
 
 precedence left PLUS, MINUS;
-precedence left MULTIPLY; 
+precedence left MULTIPLY;
 
 start with program;
 
-program ::= 
+program ::=
         main_class:mc class_decl_list:cdl
         {: RESULT = new Program(mc, cdl); :}
     ;
@@ -57,7 +60,7 @@ main_class ::=
         {: RESULT = new MainClass(class_id, arg_id, s); :}
     ;
 
-class_decl_list ::= 
+class_decl_list ::=
         class_decl_list:rest class_decl:cd
         {: rest.addElement(cd); RESULT = rest; :}
     |
@@ -69,10 +72,11 @@ class_decl ::=
         {: RESULT = new ClassDeclSimple(id, vars, methods); :}
     |   CLASS identifier:id EXTENDS identifier:parent LEFT_BRACE var_decl_list:vars method_decl_list:methods RIGHT_BRACE
         {: RESULT = new ClassDeclExtends(id, parent, vars, methods); :}
+    |   error RIGHT_BRACE
     ;
 
 var_decl_list ::=
-        var_decl_list:rest var_decl:vd 
+        var_decl_list:rest var_decl:vd
         {: rest.addElement(vd); RESULT = rest; :}
     |
         {: RESULT = new VarDeclList(); :}
@@ -84,7 +88,7 @@ var_decl ::=
     ;
 
 method_decl_list ::=
-        method_decl:md method_decl_list:rest 
+        method_decl:md method_decl_list:rest
         {: rest.addFront(md); RESULT = rest; :}
     |
         {: RESULT = new MethodDeclList(); :}
@@ -93,11 +97,15 @@ method_decl_list ::=
 method_decl ::=
         PUBLIC type:ret identifier:id LEFT_PAREN formal_list:args RIGHT_PAREN LEFT_BRACE var_decl_list:vars statement_list:sl RETURN expression:e SEMICOLON RIGHT_BRACE
         {: RESULT = new MethodDecl(ret, id, args, vars, sl, e); :}
+    |   PUBLIC type:ret identifier:id LEFT_PAREN error RIGHT_PAREN LEFT_BRACE var_decl_list:vars statement_list:sl RETURN expression:e SEMICOLON RIGHT_BRACE
+        {: RESULT = new MethodDecl(ret, id, null, vars, sl, e); :}
+    |
+        error RIGHT_BRACE
     ;
 
 formal_list ::=
         type:t identifier:id formal_rest_list:l
-        {: l.addFront(new Formal(t, id)); RESULT = l; :}   
+        {: l.addFront(new Formal(t, id)); RESULT = l; :}
     |
         {: RESULT = new FormalList(); :}
     ;
@@ -120,7 +128,7 @@ type ::=
         {: RESULT = new IdentifierType(id); :}
     ;
 
-statement_list ::= 
+statement_list ::=
         statement:s statement_list:rest
         {: rest.addFront(s); RESULT = rest; :}
     |
@@ -139,34 +147,38 @@ statement ::=
     |   identifier:id ASSIGNMENT expression:e SEMICOLON
         {: RESULT = new Assign(id, e); :}
     |   identifier:id LEFT_BRACKET expression:sub RIGHT_BRACKET ASSIGNMENT expression:rhs SEMICOLON
-        {: RESULT = new ArrayAssign(id, sub, rhs); :}    
+        {: RESULT = new ArrayAssign(id, sub, rhs); :}
+    |   error SEMICOLON
     ;
 
 expression ::=
-        expression:l AND expression:r 
+        expression:l AND expression:r
         {: RESULT = new And(l, r); :}
     |
-        expression:l LESS_THAN expression:r 
+        expression:l LESS_THAN expression:r
         {: RESULT = new LessThan(l, r); :}
     |
-        expression:l PLUS expression:r 
+        expression:l PLUS expression:r
         {: RESULT = new Plus(l, r); :}
     |
-        expression:l MINUS expression:r 
+        expression:l MINUS expression:r
         {: RESULT = new Minus(l, r); :}
     |
-        expression:l MULTIPLY expression:r 
+        expression:l MULTIPLY expression:r
         {: RESULT = new Times(l, r); :}
-    |   
+    |
         expression:a LEFT_BRACKET expression:sub RIGHT_BRACKET
         {: RESULT = new ArrayLookup(a, sub); :}
-    |   
+    |
         expression:a DEREFERENCE LENGTH
         {: RESULT = new ArrayLength(a); :}
     |
         expression:a DEREFERENCE identifier:i LEFT_PAREN expression_list:l RIGHT_PAREN
         {: RESULT = new Call(a, i, l); :}
-    |   
+    |
+        expression:a DEREFERENCE identifier:i LEFT_PAREN error RIGHT_PAREN
+        {: RESULT = new Call(a, i, null); :}
+    |
         INT_LITERAL:i
         {: RESULT = new IntegerLiteral(i); :}
     |
@@ -188,7 +200,7 @@ expression ::=
         NEW identifier:i LEFT_PAREN RIGHT_PAREN
         {: RESULT = new NewObject(i); :}
     |
-        NOT expression:e 
+        NOT expression:e
         {: RESULT = new Not(e); :}
     |
         LEFT_PAREN expression:e RIGHT_PAREN
@@ -196,14 +208,14 @@ expression ::=
     ;
 
 expression_list ::=
-        expression:e expression_rest_list:r 
+        expression:e expression_rest_list:r
         {: r.addFront(e); RESULT = r; :}
     |
         {: RESULT = new ExpList(); :}
     ;
 
 expression_rest_list ::=
-        expression_rest_list:rest COMMA expression:e 
+        expression_rest_list:rest COMMA expression:e
         {: rest.addElement(e); RESULT = rest; :}
     |
         {: RESULT = new ExpList(); :}
