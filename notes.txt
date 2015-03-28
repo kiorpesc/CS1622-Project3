@@ -9,7 +9,7 @@ structure:
 
     - Environment
         - has Map<String, SymbolInfo> (symbols)
-        - has List<Environment>  (children)
+        - has Map<String, Environment>  (children)
         - has Environment (parent)
 
         - internal to SymbolTable (not used elsewhere)
