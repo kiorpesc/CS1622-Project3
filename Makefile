@@ -9,12 +9,13 @@ all:
 	mv MiniJavaParser.java src/
 	mv sym.java src/
 	$(JFLEX) src/MiniJavaLexer.flex
-	$(JAVAC) -cp $(CLASSPATH) src/*.java
+	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH) src/*.java
 
 clean:
 	-rm src/*.class
 	-rm src/syntaxtree/*.class
 	-rm src/visitor/*.class
+	-rm src/symboltable/*.class
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
 	-rm src/sym.java
