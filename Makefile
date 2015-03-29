@@ -2,14 +2,22 @@ JAVAC = javac
 JAVA = java
 CUP = java -jar lib/java-cup-11a.jar 
 JFLEX = java -jar lib/jflex-1.6.0.jar
-CLASSPATH = "lib/\*;src/"
+CLASSPATH_WIN = "lib/\*;src/"
+CLASSPATH_LINUX = "lib/\*:src/"
 
-all:
+win:
 	$(CUP) -parser MiniJavaParser src/MiniJavaParser.cup
 	mv MiniJavaParser.java src/
 	mv sym.java src/
 	$(JFLEX) src/MiniJavaLexer.flex
-	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH) src/*.java
+	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH_WIN) src/*.java
+
+linux:
+	$(CUP) -parser MiniJavaParser src/MiniJavaParser.cup
+	mv MiniJavaParser.java src/
+	mv sym.java src/
+	$(JFLEX) src/MiniJavaLexer.flex
+	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH_LINUX) src/*.java
 
 clean:
 	-rm src/*.class
