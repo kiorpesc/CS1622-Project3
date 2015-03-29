@@ -13,12 +13,11 @@ public class SymbolTable implements ISymbolTable
         _current = _root;
     }
 
-    public void enterScope(String id) throws UnknownSymbolException
+    public void enterScope(String id)
     {
         Environment env = _current.getChild(id);
         if (env == null)
-            throw new UnknownSymbolException(id);
-
+            throw new NoSuchScopeException(id);
 
         _current = env;
     }
@@ -31,10 +30,26 @@ public class SymbolTable implements ISymbolTable
 
         _current = env;
     }
-
     // Get the SymbolInfo associated with the given id.
     public SymbolInfo getSymbol(String id) throws UnknownSymbolException
     {        
+        SymbolInfo result = searchForSymbol(id);
+
+        if (result == null)
+            throw new UnknownSymbolException(id);
+
+        return result;
+    }
+
+    public boolean hasSymbol(String id)
+    {
+        return searchForSymbol(id) != null;
+    }
+
+    // Searches for the given Symbol in the current scope, returning
+    // the SymbolInfo if it exists, null otherwise.
+    private SymbolInfo searchForSymbol(String id)
+    {
         Environment current = _current;
         SymbolInfo result = null;
 
@@ -44,9 +59,6 @@ public class SymbolTable implements ISymbolTable
             result = current.getSymbol(id);
             current = current.getParent();
         }
-
-        if (result == null)
-            throw new UnknownSymbolException(id);
 
         return result;
     }
@@ -72,6 +84,7 @@ public class SymbolTable implements ISymbolTable
         return toString(_root, 0);
     }
 
+    // Recursive function for producing a pretty String
     private static String toString(Environment current, int level)
     {
         StringBuilder result = new StringBuilder();
