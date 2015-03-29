@@ -25,7 +25,7 @@ public class NameAnalysisVisitor implements Visitor
     // Records an unknown symbol error.
     private void recordUnknownSymbolError(String name)
     {
-        _errors.add(name);
+        _errors.add("Use of undefined identifier " + name);
     }
 
     public void visit(Program n)
@@ -41,7 +41,9 @@ public class NameAnalysisVisitor implements Visitor
         String name = n.i1.s;
         
         _symbolTable.enterScope(name);
+        _symbolTable.enterScope("main");
         n.s.accept(this);
+        _symbolTable.exitScope();
         _symbolTable.exitScope();
 
     }
@@ -85,6 +87,8 @@ public class NameAnalysisVisitor implements Visitor
 
         // visit return expression
         n.e.accept(this);
+
+        _symbolTable.exitScope();
     }
     public void visit(Formal n) { }
     public void visit(IntArrayType n) { }
@@ -167,8 +171,8 @@ public class NameAnalysisVisitor implements Visitor
     }
     public void visit(Call n)
     {
-        if (!_symbolTable.hasSymbol(n.i.s))        
-            recordUnknownSymbolError(n.i.s);
+        // ignore identifier of method for now; Type Analysis
+        // will handle those errors. 
 
         n.e.accept(this);
         for (int i = 0; i < n.el.size(); ++i)

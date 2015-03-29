@@ -10,7 +10,7 @@ public class NameAnalysisTest
     {
         if (args.length < 1)
         {
-            System.err.println("usage: java PrettyPrinter <input-file>");
+            System.err.println("usage: java NameAnalysisTest <input-file>");
             System.exit(1);
         }
 
@@ -23,12 +23,12 @@ public class NameAnalysisTest
 
         ISymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
 
-        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
-        nameAnalysis.visit(program);
-
         System.out.println("======== Symbol Table ========");
         System.out.println(symbolTable);
 
+        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
+        nameAnalysis.visit(program);
+                
         System.out.println("======== Errors ========");
         System.out.println(symbolTableBuilder.getErrors());
         System.out.println(nameAnalysis.getErrors());
