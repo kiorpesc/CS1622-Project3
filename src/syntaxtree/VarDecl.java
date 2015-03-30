@@ -2,7 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class VarDecl extends Node{
+public class VarDecl extends ASTNode{
   public Type t;
   public Identifier i;
 

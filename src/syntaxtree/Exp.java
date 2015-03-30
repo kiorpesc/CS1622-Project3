@@ -2,7 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public abstract class Exp extends Node{
+public abstract class Exp extends ASTNode{
 
   public Exp(int line, int col) {
     super(line, col);

@@ -2,7 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public abstract class Type extends Node{
+public abstract class Type extends ASTNode{
   private String _name;
 
   public Type(String name)

@@ -2,7 +2,7 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class FormalList extends Node{
+public class FormalList extends ASTNode{
    private Vector list;
 
    public FormalList() {

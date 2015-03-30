@@ -1,10 +1,10 @@
 package syntaxtree;
 
-public class Node {
+public class ASTNode {
   protected int _line;
   protected int _column;
 
-  public Node(int line, int col) {
+  public ASTNode(int line, int col) {
     _line = line;
     _column = col;
   }

@@ -2,7 +2,7 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class ExpList extends Node{
+public class ExpList extends ASTNode{
    private Vector list;
 
    public ExpList() {

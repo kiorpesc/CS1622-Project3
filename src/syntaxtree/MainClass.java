@@ -2,7 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class MainClass extends Node{
+public class MainClass extends ASTNode{
   public Identifier i1,i2;
   public Statement s;
 

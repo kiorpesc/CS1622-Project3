@@ -2,7 +2,7 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class VarDeclList extends Node{
+public class VarDeclList extends ASTNode{
    private Vector list;
 
    public VarDeclList() {
