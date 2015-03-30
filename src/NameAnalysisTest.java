@@ -26,12 +26,16 @@ public class NameAnalysisTest
         System.out.println("======== Symbol Table ========");
         System.out.println(symbolTable);
 
-        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
-        nameAnalysis.visit(program);
                 
         System.out.println("======== Errors ========");
         System.out.println(symbolTableBuilder.getErrors());
-        System.out.println(nameAnalysis.getErrors());
+
+        if (symbolTableBuilder.getErrors().isEmpty())
+        {
+            NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
+            nameAnalysis.visit(program);
+            System.out.println(nameAnalysis.getErrors());
+        }
 
     }
 }

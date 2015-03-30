@@ -45,11 +45,12 @@ public class BuildSymbolTableVisitor implements Visitor
         // Create scope for the class
         String name = n.i1.s;
         checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
+
         // Enter that scope
         _symbolTable.enterClass(name);
         
         // Add binding for main method
-        checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main")));
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main", null)));
 
         // exit the class
         _symbolTable.exitClass();
@@ -61,6 +62,7 @@ public class BuildSymbolTableVisitor implements Visitor
         String name = n.i.s;
         checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
         _symbolTable.enterClass(name);
+        
         // visit variable declarations
         for (int i = 0; i < n.vl.size(); ++i)        
             n.vl.elementAt(i).accept(this);
@@ -99,7 +101,7 @@ public class BuildSymbolTableVisitor implements Visitor
     {
         // Create a scope for the method
         String name = n.i.s;
-        checkDuplicate(_symbolTable.addMethod(new MethodSymbol(name)));
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol(name, n.t)));
         _symbolTable.enterMethod(name);
 
         // TODO: do we need to add symbol for 'this'?
@@ -118,7 +120,7 @@ public class BuildSymbolTableVisitor implements Visitor
     public void visit(Formal n)
     {
         // TODO: record type
-        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, null)));
+        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, n.t)));
     }
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }
