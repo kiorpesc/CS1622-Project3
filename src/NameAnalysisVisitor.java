@@ -5,7 +5,7 @@ import syntaxtree.*;
 import java.util.*;
 
 // Check the AST for usage of undefined names
-public class NameAnalysisVisitor implements Visitor 
+public class NameAnalysisVisitor implements Visitor
 {
     private ISymbolTable _symbolTable;
     private List<String> _errors;
@@ -23,9 +23,9 @@ public class NameAnalysisVisitor implements Visitor
     }
 
     // Records an unknown symbol error.
-    private void recordUnknownSymbolError(String name)
+    private void recordUnknownSymbolError(String name, int line, int col)
     {
-        _errors.add("Use of undefined identifier " + name);
+        _errors.add("Use of undefined identifier " + name + " at line " + line + ", character " + col + ".");
     }
 
     public void visit(Program n)
@@ -37,9 +37,9 @@ public class NameAnalysisVisitor implements Visitor
             list.elementAt(i).accept(this);
     }
     public void visit(MainClass n)
-    {   
+    {
         String name = n.i1.s;
-        
+
         _symbolTable.enterClass(name);
         _symbolTable.enterMethod("main");
         n.s.accept(this);
@@ -94,10 +94,10 @@ public class NameAnalysisVisitor implements Visitor
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }
     public void visit(IntegerType n) { }
-    public void visit(IdentifierType n) 
-    { 
-        if (!_symbolTable.hasSymbol(n.s))        
-            recordUnknownSymbolError(n.s);
+    public void visit(IdentifierType n)
+    {
+        if (!_symbolTable.hasSymbol(n.s))
+            recordUnknownSymbolError(n.s, n.getLine(), n.getColumn());
     }
     public void visit(Block n)
     {
@@ -122,15 +122,15 @@ public class NameAnalysisVisitor implements Visitor
     }
     public void visit(Assign n)
     {
-        if (!_symbolTable.hasSymbol(n.i.s))        
-            recordUnknownSymbolError(n.i.s);
-        
+        if (!_symbolTable.hasSymbol(n.i.s))
+            recordUnknownSymbolError(n.i.s, n.getLine(), n.getColumn());
+
         n.e.accept(this);
     }
     public void visit(ArrayAssign n)
     {
-        if (!_symbolTable.hasSymbol(n.i.s))        
-            recordUnknownSymbolError(n.i.s);
+        if (!_symbolTable.hasSymbol(n.i.s))
+            recordUnknownSymbolError(n.i.s, n.getLine(), n.getColumn());
 
         n.e1.accept(this);
         n.e2.accept(this);
@@ -172,7 +172,7 @@ public class NameAnalysisVisitor implements Visitor
     public void visit(Call n)
     {
         // ignore identifier of method for now; Type Analysis
-        // will handle those errors. 
+        // will handle those errors.
 
         n.e.accept(this);
         for (int i = 0; i < n.el.size(); ++i)
@@ -183,12 +183,12 @@ public class NameAnalysisVisitor implements Visitor
     public void visit(False n) { }
     public void visit(IdentifierExp n)
     {
-        if (!_symbolTable.hasSymbol(n.s))        
-            recordUnknownSymbolError(n.s);
+        if (!_symbolTable.hasSymbol(n.s))
+            recordUnknownSymbolError(n.s, n.getLine(), n.getColumn());
     }
     public void visit(This n)
     {
-        
+
     }
     public void visit(NewArray n)
     {
@@ -196,8 +196,8 @@ public class NameAnalysisVisitor implements Visitor
     }
     public void visit(NewObject n)
     {
-        if (!_symbolTable.hasSymbol(n.i.s))        
-            recordUnknownSymbolError(n.i.s);
+        if (!_symbolTable.hasSymbol(n.i.s))
+            recordUnknownSymbolError(n.i.s, n.getLine(), n.getColumn());
     }
     public void visit(Not n)
     {

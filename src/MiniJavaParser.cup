@@ -62,7 +62,10 @@ main_class ::=
 
 class_decl_list ::=
         class_decl_list:rest class_decl:cd
-        {: rest.addElement(cd); RESULT = rest; :}
+        {: rest.addElement(cd);
+            rest.setLine(cd.getLine());
+            rest.setColumn(cd.getColumn());
+            RESULT = rest; :}
     |
         {: RESULT = new ClassDeclList(); :}
     ;
@@ -77,7 +80,10 @@ class_decl ::=
 
 var_decl_list ::=
         var_decl_list:rest var_decl:vd
-        {: rest.addElement(vd); RESULT = rest; :}
+        {: rest.addElement(vd);
+          rest.setLine(vd.getLine());
+          rest.setColumn(vd.getColumn());
+          RESULT = rest; :}
     |
         {: RESULT = new VarDeclList(); :}
     ;
@@ -90,7 +96,10 @@ var_decl ::=
 
 method_decl_list ::=
         method_decl:md method_decl_list:rest
-        {: rest.addFront(md); RESULT = rest; :}
+        {: rest.addFront(md);
+          rest.setLine(md.getLine());
+          rest.setColumn(md.getColumn());
+          RESULT = rest; :}
     |
         {: RESULT = new MethodDeclList(); :}
     ;
@@ -106,14 +115,20 @@ method_decl ::=
 
 formal_list ::=
         type:t identifier:id formal_rest_list:l
-        {: l.addFront(new Formal(t, id, t.getLine(), t.getColumn())); RESULT = l; :}
+        {: l.addFront(new Formal(t, id, t.getLine(), t.getColumn()));
+            l.setLine(t.getLine());
+            l.setColumn(t.getColumn());
+            RESULT = l; :}
     |
         {: RESULT = new FormalList(); :}
     ;
 
 formal_rest_list ::=
         formal_rest_list:rest COMMA type:t identifier:id
-        {: rest.addElement(new Formal(t, id, t.getLine(), t.getColumn())); RESULT = rest; :}
+        {: rest.addElement(new Formal(t, id, t.getLine(), t.getColumn()));
+          rest.setLine(t.getLine());
+          rest.setColumn(t.getColumn());
+          RESULT = rest; :}
     |
         {: RESULT = new FormalList(); :}
     ;
@@ -131,7 +146,10 @@ type ::=
 
 statement_list ::=
         statement:s statement_list:rest
-        {: rest.addFront(s); RESULT = rest; :}
+        {: rest.addFront(s);
+            rest.setLine(s.getLine());
+            rest.setColumn(s.getColumn());
+            RESULT = rest; :}
     |
         {: RESULT = new StatementList(); :}
     ;
@@ -141,68 +159,68 @@ statement ::=
         {: RESULT = new Block(list, list.getLine(), list.getColumn()); :}
     |   IF:i LEFT_PAREN expression:e RIGHT_PAREN statement:s1 ELSE statement:s2
         {: RESULT = new If(e, s1, s2, ileft, iright); :}
-    |   WHILE LEFT_PAREN expression:e RIGHT_PAREN statement:s
-        {: RESULT = new While(e, s); :}
-    |   PRINT LEFT_PAREN expression:e RIGHT_PAREN SEMICOLON
-        {: RESULT = new Print(e); :}
-    |   identifier:id ASSIGNMENT expression:e SEMICOLON
-        {: RESULT = new Assign(id, e); :}
+    |   WHILE:w LEFT_PAREN expression:e RIGHT_PAREN statement:s
+        {: RESULT = new While(e, s, wleft, wright); :}
+    |   PRINT:p LEFT_PAREN expression:e RIGHT_PAREN SEMICOLON
+        {: RESULT = new Print(e, pleft, pright); :}
+    |   identifier:id ASSIGNMENT:a expression:e SEMICOLON
+        {: RESULT = new Assign(id, e, idleft, idright); :}
     |   identifier:id LEFT_BRACKET expression:sub RIGHT_BRACKET ASSIGNMENT expression:rhs SEMICOLON
-        {: RESULT = new ArrayAssign(id, sub, rhs); :}
+        {: RESULT = new ArrayAssign(id, sub, rhs, idleft, idright); :}
     |   error SEMICOLON
     ;
 
 expression ::=
-        expression:l AND expression:r
-        {: RESULT = new And(l, r); :}
+        expression:l AND:a expression:r
+        {: RESULT = new And(l, r, aleft, aright); :}
     |
-        expression:l LESS_THAN expression:r
-        {: RESULT = new LessThan(l, r); :}
+        expression:l LESS_THAN:lt expression:r
+        {: RESULT = new LessThan(l, r, ltleft, ltright); :}
     |
-        expression:l PLUS expression:r
-        {: RESULT = new Plus(l, r); :}
+        expression:l PLUS:p expression:r
+        {: RESULT = new Plus(l, r, pleft, pright); :}
     |
-        expression:l MINUS expression:r
-        {: RESULT = new Minus(l, r); :}
+        expression:l MINUS:m expression:r
+        {: RESULT = new Minus(l, r, mleft, mright); :}
     |
-        expression:l MULTIPLY expression:r
-        {: RESULT = new Times(l, r); :}
+        expression:l MULTIPLY:m expression:r
+        {: RESULT = new Times(l, r, mleft, mright); :}
     |
         expression:a LEFT_BRACKET expression:sub RIGHT_BRACKET
-        {: RESULT = new ArrayLookup(a, sub); :}
+        {: RESULT = new ArrayLookup(a, sub, aleft, aright); :}
     |
-        expression:a DEREFERENCE LENGTH
-        {: RESULT = new ArrayLength(a); :}
+        expression:a DEREFERENCE:d LENGTH
+        {: RESULT = new ArrayLength(a, dleft, dright); :}
     |
-        expression:a DEREFERENCE identifier:i LEFT_PAREN expression_list:l RIGHT_PAREN
-        {: RESULT = new Call(a, i, l); :}
+        expression:a DEREFERENCE:d identifier:i LEFT_PAREN expression_list:l RIGHT_PAREN
+        {: RESULT = new Call(a, i, l, dleft, dright); :}
     |
         expression:a DEREFERENCE identifier:i LEFT_PAREN error RIGHT_PAREN
         {: RESULT = new Call(a, i, null); :}
     |
         INT_LITERAL:i
-        {: RESULT = new IntegerLiteral(i); :}
+        {: RESULT = new IntegerLiteral(i, ileft, iright); :}
     |
-        TRUE
-        {: RESULT = new True(); :}
+        TRUE:t
+        {: RESULT = new True(tleft, tright); :}
     |
-        FALSE
-        {: RESULT = new False(); :}
+        FALSE:f
+        {: RESULT = new False(fleft, fright); :}
     |
         IDENTIFIER:id
-        {: RESULT = new IdentifierExp(id); :}
+        {: RESULT = new IdentifierExp(id, idleft, idright); :}
     |
-        THIS
-        {: RESULT = new This(); :}
+        THIS:t
+        {: RESULT = new This(tleft, tright); :}
     |
         NEW INT LEFT_BRACKET expression:e RIGHT_BRACKET
-        {: RESULT = new NewArray(e); :}
+        {: RESULT = new NewArray(e, eleft, eright); :}
     |
         NEW identifier:i LEFT_PAREN RIGHT_PAREN
-        {: RESULT = new NewObject(i); :}
+        {: RESULT = new NewObject(i, ileft, iright); :}
     |
         NOT expression:e
-        {: RESULT = new Not(e); :}
+        {: RESULT = new Not(e, eleft, eright); :}
     |
         LEFT_PAREN expression:e RIGHT_PAREN
         {: RESULT = e; :}
@@ -210,19 +228,25 @@ expression ::=
 
 expression_list ::=
         expression:e expression_rest_list:r
-        {: r.addFront(e); RESULT = r; :}
+        {: r.addFront(e);
+            r.setLine(e.getLine());
+            r.setColumn(e.getColumn());
+            RESULT = r; :}
     |
         {: RESULT = new ExpList(); :}
     ;
 
 expression_rest_list ::=
         expression_rest_list:rest COMMA expression:e
-        {: rest.addElement(e); RESULT = rest; :}
+        {: rest.addElement(e);
+           rest.setLine(e.getLine());
+           rest.setColumn(e.getColumn());
+           RESULT = rest; :}
     |
         {: RESULT = new ExpList(); :}
     ;
 
 identifier ::=
         IDENTIFIER:id
-        {: RESULT = new Identifier(id); :}
+        {: RESULT = new Identifier(id, idleft, idright); :}
     ;
