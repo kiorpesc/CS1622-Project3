@@ -51,6 +51,39 @@ public class SymbolTable implements ISymbolTable
         _currentClass = null;
     }
 
+    public boolean hasSymbol(String id)
+    {
+        // Check if the current method has a binding for the id
+        if (_currentMethod != null && _currentMethod.hasVariable(id))
+            return true;
+
+        if (_currentClass != null)
+        {
+            // Navigate the inheritance hierarchy to see if the binding
+            // exists somewhere in current or parent classes. 
+            ClassSymbol currentClass = _currentClass;
+            while (currentClass != null)
+            {
+                if (currentClass.hasBinding(id))
+                    return true; 
+
+                currentClass = _classes.get(currentClass.getParentName());
+            }
+        }
+
+        // Finally, check if the id corresponds to a class. 
+        return _classes.containsKey(id);
+    }
+
+    public ClassSymbol getClass(String id)
+    {
+        return _classes.get(id);
+    }
+
+    public boolean hasClass(String id)
+    {
+        return getClass(id) != null;
+    }
 
     // Add a binding for a class 
     // Returns the old binding to the identifier, or null if no such binding existed.
@@ -80,30 +113,6 @@ public class SymbolTable implements ISymbolTable
             return _currentClass.addVariable(symbol);
 
         throw new IllegalStateException("cannot add variable outside of class and method scopes");
-    }
-
-    public boolean hasSymbol(String id)
-    {
-        // Check if the current method has a binding for the id
-        if (_currentMethod != null && _currentMethod.hasVariable(id))
-            return true;
-
-        if (_currentClass != null)
-        {
-            // Navigate the inheritance hierarchy to see if the binding
-            // exists somewhere in current or parent classes. 
-            ClassSymbol currentClass = _currentClass;
-            while (currentClass != null)
-            {
-                if (currentClass.hasBinding(id))
-                    return true; 
-
-                currentClass = _classes.get(currentClass.getParentName());
-            }
-        }
-
-        // Finally, check if the id corresponds to a class. 
-        return _classes.containsKey(id);
     }
 
     public String toString()
