@@ -24,4 +24,9 @@ public abstract class Type extends Node{
 
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
+
+  public String toString()
+  {
+    return _name;
+  }
 }

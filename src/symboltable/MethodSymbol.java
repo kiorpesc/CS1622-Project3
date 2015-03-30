@@ -1,5 +1,7 @@
 package symboltable;
 
+import syntaxtree.Type;
+
 import java.util.*;
 
 // Holds information relevant to a Method symbol.
@@ -8,9 +10,12 @@ public class MethodSymbol extends SymbolInfo
     private Map<String, VariableSymbol> _formals = new HashMap<String, VariableSymbol>();
     private Map<String, VariableSymbol> _locals = new HashMap<String, VariableSymbol>();
 
-    public MethodSymbol(String name)
+    private Type _returnType;
+
+    public MethodSymbol(String name, Type returnType)
     {
         super(name);
+        _returnType = returnType;
     }
 
     // Adds a VariableSymbol to the formal list, returning the old
@@ -70,14 +75,12 @@ public class MethodSymbol extends SymbolInfo
         }
         
         result.append(" : ");
-        // TODO: return type
-        result.append("{\n");
+        if (_returnType != null)
+            result.append(_returnType.getName());
+        result.append(" {\n");
 
         for (VariableSymbol local : _locals.values())
-        {
-            result.append(local.toString());
-            result.append("\n");
-        }
+            result.append(local.toString());            
 
         result.append("}\n");
         return result.toString();
