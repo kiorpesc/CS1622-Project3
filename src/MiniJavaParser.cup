@@ -57,7 +57,7 @@ program ::=
 
 main_class ::=
         CLASS identifier:class_id LEFT_BRACE PUBLIC STATIC VOID MAIN LEFT_PAREN STRING LEFT_BRACKET RIGHT_BRACKET identifier:arg_id RIGHT_PAREN LEFT_BRACE statement:s RIGHT_BRACE RIGHT_BRACE
-        {: RESULT = new MainClass(class_id, arg_id, s); :}
+        {: RESULT = new MainClass(class_id, arg_id, s, class_id.getLine(), class_id.getColumn()); :}
     ;
 
 class_decl_list ::=
@@ -69,9 +69,9 @@ class_decl_list ::=
 
 class_decl ::=
         CLASS identifier:id LEFT_BRACE var_decl_list:vars method_decl_list:methods RIGHT_BRACE
-        {: RESULT = new ClassDeclSimple(id, vars, methods); :}
+        {: RESULT = new ClassDeclSimple(id, vars, methods, id.getLine(), id.getColumn()); :}
     |   CLASS identifier:id EXTENDS identifier:parent LEFT_BRACE var_decl_list:vars method_decl_list:methods RIGHT_BRACE
-        {: RESULT = new ClassDeclExtends(id, parent, vars, methods); :}
+        {: RESULT = new ClassDeclExtends(id, parent, vars, methods, id.getLine(), id.getColumn()); :}
     |   error RIGHT_BRACE
     ;
 
@@ -84,7 +84,7 @@ var_decl_list ::=
 
 var_decl ::=
         type:t identifier:id SEMICOLON
-        {: RESULT = new VarDecl(t, id); :}
+        {: RESULT = new VarDecl(t, id, t.getLine(), t.getColumn()); :}
     |   type:t error SEMICOLON
     ;
 
@@ -97,36 +97,36 @@ method_decl_list ::=
 
 method_decl ::=
         PUBLIC type:ret identifier:id LEFT_PAREN formal_list:args RIGHT_PAREN LEFT_BRACE var_decl_list:vars statement_list:sl RETURN expression:e SEMICOLON RIGHT_BRACE
-        {: RESULT = new MethodDecl(ret, id, args, vars, sl, e); :}
+        {: RESULT = new MethodDecl(ret, id, args, vars, sl, e, ret.getLine(), ret.getColumn()); :}
     |   PUBLIC type:ret identifier:id LEFT_PAREN error RIGHT_PAREN LEFT_BRACE var_decl_list:vars statement_list:sl RETURN expression:e SEMICOLON RIGHT_BRACE
-        {: RESULT = new MethodDecl(ret, id, null, vars, sl, e); :}
+        {: RESULT = new MethodDecl(ret, id, null, vars, sl, e, ret.getLine(), ret.getColumn()); :}
     |
         error RIGHT_BRACE
     ;
 
 formal_list ::=
         type:t identifier:id formal_rest_list:l
-        {: l.addFront(new Formal(t, id)); RESULT = l; :}
+        {: l.addFront(new Formal(t, id, t.getLine(), t.getColumn())); RESULT = l; :}
     |
         {: RESULT = new FormalList(); :}
     ;
 
 formal_rest_list ::=
         formal_rest_list:rest COMMA type:t identifier:id
-        {: rest.addElement(new Formal(t, id)); RESULT = rest; :}
+        {: rest.addElement(new Formal(t, id, t.getLine(), t.getColumn())); RESULT = rest; :}
     |
         {: RESULT = new FormalList(); :}
     ;
 
 type ::=
-        INT LEFT_BRACKET RIGHT_BRACKET
-        {: RESULT = new IntArrayType(); :}
-    |   BOOLEAN
-        {: RESULT = new BooleanType(); :}
-    |   INT
-        {: RESULT = new IntegerType(); :}
+        INT:i LEFT_BRACKET RIGHT_BRACKET
+        {: RESULT = new IntArrayType(ileft, iright); :}
+    |   BOOLEAN:b
+        {: RESULT = new BooleanType(bleft, bright); :}
+    |   INT:i
+        {: RESULT = new IntegerType(ileft, iright); :}
     |   IDENTIFIER:id
-        {: RESULT = new IdentifierType(id); :}
+        {: RESULT = new IdentifierType(id, idleft, idright); :}
     ;
 
 statement_list ::=
@@ -138,9 +138,9 @@ statement_list ::=
 
 statement ::=
         LEFT_BRACE statement_list:list RIGHT_BRACE
-        {: RESULT = new Block(list); :}
-    |   IF LEFT_PAREN expression:e RIGHT_PAREN statement:s1 ELSE statement:s2
-        {: RESULT = new If(e, s1, s2); :}
+        {: RESULT = new Block(list, list.getLine(), list.getColumn()); :}
+    |   IF:i LEFT_PAREN expression:e RIGHT_PAREN statement:s1 ELSE statement:s2
+        {: RESULT = new If(e, s1, s2, ileft, iright); :}
     |   WHILE LEFT_PAREN expression:e RIGHT_PAREN statement:s
         {: RESULT = new While(e, s); :}
     |   PRINT LEFT_PAREN expression:e RIGHT_PAREN SEMICOLON
