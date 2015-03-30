@@ -24,15 +24,7 @@ public class BuildSymbolTableVisitor implements Visitor
         return _errors;
     }
 
-    // Add a binding between the given symbol and its info, recordining
-    // a redefinition error if necessary.
-    /*private void addBinding(String name, Symbol info)
-    {
-        Symbol old = _symbolTable.addBinding(name, info);
-        if (old != null)
-            _errors.add("Multiply defined identifier " + name);
-    }*/
-
+    // Records an error if a duplicate symbol is detected
     private void checkDuplicate(SymbolInfo oldSymbol)
     {
         if (oldSymbol != null)

@@ -2,6 +2,7 @@ package symboltable;
 
 import java.util.*;
 
+// Holds information relevant for a ClassSymbol
 public class ClassSymbol extends SymbolInfo 
 {
     private Map<String, MethodSymbol> _methods = new HashMap<String, MethodSymbol>();
@@ -19,11 +20,14 @@ public class ClassSymbol extends SymbolInfo
         _parentName = parent;
     }
 
+    // Retrieve the method specified by id
     public MethodSymbol getMethod(String id)
     {
         return _methods.get(id);
     }
 
+    // Add a method to this class, returning the old MethodSymbol mapped to the
+    // name if it exists (null otherwise).
     public MethodSymbol addMethod(MethodSymbol symbol)
     {
         MethodSymbol old = _methods.get(symbol.getName());
@@ -31,11 +35,14 @@ public class ClassSymbol extends SymbolInfo
         return old;
     }
 
+    // Retrieve the variable specified by id
     public VariableSymbol getVariable(String id)
     {
         return _variables.get(id);
     }
 
+    // Add a variable to this class, returning the old VariableSymbol mapped to the
+    // name if it exists (null otherwise).
     public VariableSymbol addVariable(VariableSymbol symbol)
     {
         VariableSymbol old = _variables.get(symbol.getName());
@@ -43,11 +50,13 @@ public class ClassSymbol extends SymbolInfo
         return old;
     }
 
+    // Returns true iff the given id has a binding in this class's scope
     public boolean hasBinding(String id)
     {
         return _methods.containsKey(id) || _variables.containsKey(id);
     }
 
+    // Returns the name of the parent class.
     public String getParentName()
     {
         return _parentName;

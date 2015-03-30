@@ -2,6 +2,7 @@ package symboltable;
 
 import java.util.*;
 
+// Holds information relevant to a Method symbol.
 public class MethodSymbol extends SymbolInfo 
 {
     private Map<String, VariableSymbol> _formals = new HashMap<String, VariableSymbol>();
@@ -40,6 +41,7 @@ public class MethodSymbol extends SymbolInfo
         return old;
     }
 
+    // Returns true iff a variable with the given name exists in this method's scope.
     public boolean hasVariable(String id)
     {
         return _formals.containsKey(id) || _locals.containsKey(id);

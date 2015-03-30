@@ -1,6 +1,6 @@
 package symboltable;
 
-public class SymbolInfo
+public abstract class SymbolInfo
 {
     private String _name;
 

@@ -2,6 +2,7 @@ package symboltable;
 
 import syntaxtree.Type;
 
+// Represents a Variable symbol (just holds Type and Name of the variable)
 public class VariableSymbol extends SymbolInfo 
 {
     private Type _type;
