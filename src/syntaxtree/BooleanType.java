@@ -4,9 +4,9 @@ import visitor.TypeVisitor;
 
 public class BooleanType extends Type {
 
-  public BooleanType()
+  public BooleanType(int line, int col)
   {
-    super("boolean");
+    super("boolean", line, col);
   }
 
   public void accept(Visitor v) {

@@ -2,10 +2,14 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class MethodDeclList {
+public class MethodDeclList extends Node{
    private Vector list;
 
    public MethodDeclList() {
+      list = new Vector();
+   }
+
+   public MethodDeclList(int line, int col) {
       list = new Vector();
    }
 
@@ -17,11 +21,11 @@ public class MethodDeclList {
       list.add(0, n);
    }
 
-   public MethodDecl elementAt(int i)  { 
-      return (MethodDecl)list.elementAt(i); 
+   public MethodDecl elementAt(int i)  {
+      return (MethodDecl)list.elementAt(i);
    }
 
-   public int size() { 
-      return list.size(); 
+   public int size() {
+      return list.size();
    }
 }

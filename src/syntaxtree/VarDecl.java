@@ -5,8 +5,13 @@ import visitor.TypeVisitor;
 public class VarDecl {
   public Type t;
   public Identifier i;
-  
+
   public VarDecl(Type at, Identifier ai) {
+    t=at; i=ai;
+  }
+
+  public VarDecl(Type at, Identifier ai, int line, int col) {
+    super(line, col);
     t=at; i=ai;
   }
 

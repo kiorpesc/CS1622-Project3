@@ -2,10 +2,15 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class ExpList {
+public class ExpList extends Node{
    private Vector list;
 
    public ExpList() {
+      list = new Vector();
+   }
+
+   public ExpList(int line, int col) {
+      super(line, col);
       list = new Vector();
    }
 
@@ -17,11 +22,11 @@ public class ExpList {
       list.add(0, n);
    }
 
-   public Exp elementAt(int i)  { 
-      return (Exp)list.elementAt(i); 
+   public Exp elementAt(int i)  {
+      return (Exp)list.elementAt(i);
    }
 
-   public int size() { 
-      return list.size(); 
+   public int size() {
+      return list.size();
    }
 }

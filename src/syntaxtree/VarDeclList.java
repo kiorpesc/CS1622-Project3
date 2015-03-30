@@ -9,6 +9,11 @@ public class VarDeclList {
       list = new Vector();
    }
 
+   public VarDeclList(int line, int col) {
+      super(line, col);
+      list = new Vector();
+   }
+
    public void addElement(VarDecl n) {
       list.addElement(n);
    }
@@ -17,11 +22,11 @@ public class VarDeclList {
       list.add(0, n);
    }
 
-   public VarDecl elementAt(int i)  { 
-      return (VarDecl)list.elementAt(i); 
+   public VarDecl elementAt(int i)  {
+      return (VarDecl)list.elementAt(i);
    }
 
-   public int size() { 
-      return list.size(); 
+   public int size() {
+      return list.size();
    }
 }

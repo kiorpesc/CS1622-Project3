@@ -2,12 +2,12 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class Program {
+public class Program extends Node{
   public MainClass m;
   public ClassDeclList cl;
 
   public Program(MainClass am, ClassDeclList acl) {
-    m=am; cl=acl; 
+    m=am; cl=acl;
   }
 
   public void accept(Visitor v) {

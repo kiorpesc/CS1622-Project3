@@ -3,6 +3,12 @@ import visitor.Visitor;
 import visitor.TypeVisitor;
 
 public class True extends Exp {
+
+  public True(int line, int col)
+  {
+    super(line, col);
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }

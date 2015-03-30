@@ -7,7 +7,12 @@ public class Assign extends Statement {
   public Exp e;
 
   public Assign(Identifier ai, Exp ae) {
-    i=ai; e=ae; 
+    i=ai; e=ae;
+  }
+
+  public Assign(Identifier ai, Exp ae, int line, int col) {
+    super(line, col);
+    i=ai; e=ae;
   }
 
   public void accept(Visitor v) {
@@ -18,4 +23,3 @@ public class Assign extends Statement {
     return v.visit(this);
   }
 }
-

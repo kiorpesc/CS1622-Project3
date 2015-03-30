@@ -9,6 +9,11 @@ public class IntegerType extends Type {
     super("int");
   }
 
+  public IntegerType(int line, int col)
+  {
+    super("int", line, col);
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }

@@ -2,11 +2,16 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 
-public class Formal {
+public class Formal extends Node{
   public Type t;
   public Identifier i;
- 
+
   public Formal(Type at, Identifier ai) {
+    t=at; i=ai;
+  }
+
+  public Formal(Type at, Identifier ai, int line, int col) {
+    super(line, col);
     t=at; i=ai;
   }
 

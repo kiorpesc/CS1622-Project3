@@ -7,7 +7,12 @@ public class While extends Statement {
   public Statement s;
 
   public While(Exp ae, Statement as) {
-    e=ae; s=as; 
+    e=ae; s=as;
+  }
+
+  public While(Exp ae, Statement as, int line, int col) {
+    super(line, col);
+    e=ae; s=as;
   }
 
   public void accept(Visitor v) {
@@ -18,4 +23,3 @@ public class While extends Statement {
     return v.visit(this);
   }
 }
-

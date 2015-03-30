@@ -9,6 +9,11 @@ public class IntArrayType extends Type {
     super("int[]");
   }
 
+  public IntArrayType(int line, int col)
+  {
+    super("int[]", line, col);
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }

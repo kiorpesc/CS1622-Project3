@@ -9,6 +9,10 @@ public class IntegerLiteral extends Exp {
     i=ai;
   }
 
+  public IntegerLiteral(int ai, int line, int col) {
+    i=ai;
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }

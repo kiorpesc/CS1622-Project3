@@ -10,6 +10,11 @@ public class IdentifierType extends Type {
     s=as;
   }
 
+  public IdentifierType(String as, int line, int col) {
+    super(as, line, col);
+    s=as;
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }

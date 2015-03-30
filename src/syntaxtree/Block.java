@@ -9,6 +9,11 @@ public class Block extends Statement {
     sl=asl;
   }
 
+  public Block(StatementList asl, int line, int col) {
+    super(line, col);
+    sl=asl;
+  }
+
   public void accept(Visitor v) {
     v.visit(this);
   }
@@ -17,4 +22,3 @@ public class Block extends Statement {
     return v.visit(this);
   }
 }
-
