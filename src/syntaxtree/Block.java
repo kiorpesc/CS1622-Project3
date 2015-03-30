@@ -6,6 +6,7 @@ public class Block extends Statement {
   public StatementList sl;
 
   public Block(StatementList asl) {
+    super(0,0);
     sl=asl;
   }
 

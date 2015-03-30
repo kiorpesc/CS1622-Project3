@@ -8,6 +8,7 @@ public class ClassDeclSimple extends ClassDecl {
   public MethodDeclList ml;
 
   public ClassDeclSimple(Identifier ai, VarDeclList avl, MethodDeclList aml) {
+    super(0,0);
     i=ai; vl=avl; ml=aml;
   }
 

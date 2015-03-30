@@ -7,6 +7,7 @@ public class While extends Statement {
   public Statement s;
 
   public While(Exp ae, Statement as) {
+    super(0,0);
     e=ae; s=as;
   }
 

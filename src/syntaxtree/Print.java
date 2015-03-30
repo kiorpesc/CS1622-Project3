@@ -6,6 +6,7 @@ public class Print extends Statement {
   public Exp e;
 
   public Print(Exp ae) {
+    super(0,0);
     e=ae;
   }
 

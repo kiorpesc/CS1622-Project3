@@ -2,10 +2,11 @@ package syntaxtree;
 
 import java.util.Vector;
 
-public class VarDeclList {
+public class VarDeclList extends Node{
    private Vector list;
 
    public VarDeclList() {
+     super(0,0);
       list = new Vector();
    }
 

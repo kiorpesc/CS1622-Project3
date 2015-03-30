@@ -1,6 +1,6 @@
 package syntaxtree;
 
-public abstract class Node {
+public class Node {
   protected int _line;
   protected int _column;
 

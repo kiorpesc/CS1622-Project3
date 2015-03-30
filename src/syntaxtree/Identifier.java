@@ -6,6 +6,7 @@ public class Identifier extends Node{
   public String s;
 
   public Identifier(String as) {
+    super(0,0);
     s=as;
   }
 

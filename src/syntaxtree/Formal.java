@@ -7,6 +7,7 @@ public class Formal extends Node{
   public Identifier i;
 
   public Formal(Type at, Identifier ai) {
+    super(0,0);
     t=at; i=ai;
   }
 

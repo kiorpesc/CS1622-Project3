@@ -6,10 +6,12 @@ public class IdentifierExp extends Exp {
   public String s;
 
   public IdentifierExp(String as) {
+    super(0,0);
     s=as;
   }
 
-  public IdentifierExp(String as, int line, int col) { 
+  public IdentifierExp(String as, int line, int col) {
+    super(line, col);
     s=as;
   }
 

@@ -6,10 +6,12 @@ public class MethodDeclList extends Node{
    private Vector list;
 
    public MethodDeclList() {
+     super(0,0);
       list = new Vector();
    }
 
    public MethodDeclList(int line, int col) {
+      super(line, col);
       list = new Vector();
    }
 

@@ -6,6 +6,7 @@ public class Not extends Exp {
   public Exp e;
 
   public Not(Exp ae) {
+    super(0,0);
     e=ae;
   }
 

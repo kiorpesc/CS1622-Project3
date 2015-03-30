@@ -6,7 +6,7 @@ public class IntArrayType extends Type {
 
   public IntArrayType()
   {
-    super("int[]");
+    super("int[]", 0,0);
   }
 
   public IntArrayType(int line, int col)

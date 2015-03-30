@@ -6,6 +6,7 @@ public class ClassDeclList extends Node{
    private Vector list;
 
    public ClassDeclList() {
+     super(0,0);
      list = new Vector();
    }
 

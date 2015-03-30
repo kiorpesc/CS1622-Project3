@@ -6,6 +6,7 @@ public class NewArray extends Exp {
   public Exp e;
 
   public NewArray(Exp ae) {
+    super(0,0);
     e=ae;
   }
 

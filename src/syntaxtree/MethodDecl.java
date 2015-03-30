@@ -12,6 +12,7 @@ public class MethodDecl extends Node{
 
   public MethodDecl(Type at, Identifier ai, FormalList afl, VarDeclList avl,
                     StatementList asl, Exp ae) {
+    super(0,0);
     t=at; i=ai; fl=afl; vl=avl; sl=asl; e=ae;
   }
 

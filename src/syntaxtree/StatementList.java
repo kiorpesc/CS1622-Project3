@@ -6,6 +6,7 @@ public class StatementList extends Node{
    private Vector list;
 
    public StatementList() {
+     super(0,0);
       list = new Vector();
    }
 

@@ -7,11 +7,13 @@ public abstract class Type extends Node{
 
   public Type(String name)
   {
+    super(0,0);
     _name = name;
   }
 
   public Type(String name, int line, int col)
   {
+    super(line, col);
     _name = name;
   }
 

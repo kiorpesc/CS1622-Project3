@@ -4,6 +4,11 @@ import visitor.TypeVisitor;
 
 public class BooleanType extends Type {
 
+  public BooleanType()
+  {
+    super("boolean");
+  }
+
   public BooleanType(int line, int col)
   {
     super("boolean", line, col);

@@ -4,6 +4,8 @@ import visitor.TypeVisitor;
 
 public class True extends Exp {
 
+  public True(){ super(0,0); }
+
   public True(int line, int col)
   {
     super(line, col);

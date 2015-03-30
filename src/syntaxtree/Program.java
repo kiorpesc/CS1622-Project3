@@ -7,6 +7,7 @@ public class Program extends Node{
   public ClassDeclList cl;
 
   public Program(MainClass am, ClassDeclList acl) {
+    super(0,0);
     m=am; cl=acl;
   }
 

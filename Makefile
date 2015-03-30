@@ -3,7 +3,7 @@ JAVA = java
 CUP = java -jar lib/java-cup-11a.jar 
 JFLEX = java -jar lib/jflex-1.6.0.jar
 CLASSPATH_WIN = "lib/\*;src/"
-CLASSPATH_LINUX = "lib/\*:src/"
+CLASSPATH_LINUX = "lib/java-cup-11a.jar:src/"
 
 win:
 	$(CUP) -parser MiniJavaParser src/MiniJavaParser.cup

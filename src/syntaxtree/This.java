@@ -4,6 +4,8 @@ import visitor.TypeVisitor;
 
 public class This extends Exp {
 
+  public This(){ super(0,0); }
+
   public This(int line, int col) {
     super(line, col);
   }

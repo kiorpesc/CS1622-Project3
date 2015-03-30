@@ -6,6 +6,7 @@ public class FormalList extends Node{
    private Vector list;
 
    public FormalList() {
+     super(0,0);
       list = new Vector();
    }
 

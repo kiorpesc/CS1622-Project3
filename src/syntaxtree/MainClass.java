@@ -7,6 +7,7 @@ public class MainClass extends Node{
   public Statement s;
 
   public MainClass(Identifier ai1, Identifier ai2, Statement as) {
+    super(0,0);
     i1=ai1; i2=ai2; s=as;
   }
 

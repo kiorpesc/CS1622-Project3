@@ -6,6 +6,7 @@ public class NewObject extends Exp {
   public Identifier i;
 
   public NewObject(Identifier ai) {
+    super(0,0);
     i=ai;
   }
 

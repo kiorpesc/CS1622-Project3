@@ -6,7 +6,7 @@ public class IdentifierType extends Type {
   public String s;
 
   public IdentifierType(String as) {
-    super(as);
+    super(as, 0,0);
     s=as;
   }
 

@@ -6,6 +6,7 @@ public class ExpList extends Node{
    private Vector list;
 
    public ExpList() {
+     super(0,0);
       list = new Vector();
    }
 

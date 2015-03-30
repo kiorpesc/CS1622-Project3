@@ -6,7 +6,7 @@ public class IntegerType extends Type {
 
   public IntegerType()
   {
-    super("int");
+    super("int", 0,0);
   }
 
   public IntegerType(int line, int col)
