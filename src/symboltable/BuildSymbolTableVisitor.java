@@ -26,11 +26,17 @@ public class BuildSymbolTableVisitor implements Visitor
 
     // Add a binding between the given symbol and its info, recordining
     // a redefinition error if necessary.
-    private void addBinding(String name, SymbolInfo info)
+    /*private void addBinding(String name, Symbol info)
     {
-        SymbolInfo old = _symbolTable.addBinding(name, info);
+        Symbol old = _symbolTable.addBinding(name, info);
         if (old != null)
             _errors.add("Multiply defined identifier " + name);
+    }*/
+
+    private void checkDuplicate(SymbolInfo oldSymbol)
+    {
+        if (oldSymbol != null)
+            _errors.add("Multiply defined identifier " + oldSymbol.getName());
     }
 
     public void visit(Program n)
@@ -46,33 +52,23 @@ public class BuildSymbolTableVisitor implements Visitor
     {
         // Create scope for the class
         String name = n.i1.s;
-        _symbolTable.addScope(name);
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
         // Enter that scope
-        _symbolTable.enterScope(name);
+        _symbolTable.enterClass(name);
         
-        // Create scope for main method
-        _symbolTable.addScope("main");
-        _symbolTable.enterScope("main");
-        // Create binding for main method argument name
-        addBinding(n.i2.s, new SymbolInfo(n.i2.s));
-        _symbolTable.exitScope();
+        // Add binding for main method
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main")));
 
-        // add binding for main method
-        addBinding("main", new SymbolInfo("main"));
+        // exit the class
+        _symbolTable.exitClass();
 
-        // Back to root scope
-        _symbolTable.exitScope();
-
-        // Add a binding for the mainclass
-        addBinding(name, new SymbolInfo(name));
     }
     public void visit(ClassDeclSimple n)
     {
         // Create scope for the class
         String name = n.i.s;
-        _symbolTable.addScope(name);
-        _symbolTable.enterScope(name);
-
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
+        _symbolTable.enterClass(name);
         // visit variable declarations
         for (int i = 0; i < n.vl.size(); ++i)        
             n.vl.elementAt(i).accept(this);
@@ -81,19 +77,15 @@ public class BuildSymbolTableVisitor implements Visitor
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
 
-        // Add SymbolInfo
-        _symbolTable.exitScope();
-        // TODO: record method/variable names,
-        addBinding(name, new SymbolInfo(name));
-
-
+        // Add Symbol
+        _symbolTable.exitClass();
     }
     public void visit(ClassDeclExtends n)
     {
         // Create scope for the class
         String name = n.i.s;
-        _symbolTable.addScope(name);
-        _symbolTable.enterScope(name);
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name, n.j.s)));
+        _symbolTable.enterClass(name);
 
         // visit variable declarations
         for (int i = 0; i < n.vl.size(); ++i)        
@@ -103,25 +95,22 @@ public class BuildSymbolTableVisitor implements Visitor
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
 
-        // Add SymbolInfo
-        _symbolTable.exitScope();
-        // TODO: record method/variable names, extended type
-        addBinding(name, new SymbolInfo(name));
+        // Add Symbol
+        _symbolTable.exitClass();
     }
     public void visit(VarDecl n)
     {
-        // TODO: add Type to SymbolInfo
-        addBinding(n.i.s, new SymbolInfo(n.i.s));
+        // TODO: add Type to Symbol
+        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, n.t)));
     }
     public void visit(MethodDecl n)
     {
         // Create a scope for the method
         String name = n.i.s;
-        _symbolTable.addScope(name);
-        _symbolTable.enterScope(name);
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol(name)));
+        _symbolTable.enterMethod(name);
 
-        // add binding for implicit "this" keyword
-        addBinding("this", new SymbolInfo("this"));
+        // TODO: do we need to add symbol for 'this'?
 
         // visit formal declarations
         for (int i = 0; i < n.fl.size(); ++i)
@@ -132,13 +121,12 @@ public class BuildSymbolTableVisitor implements Visitor
             n.vl.elementAt(i).accept(this);
 
         // Exit scope and add info for this method declaration
-        _symbolTable.exitScope();
-        addBinding(name, new SymbolInfo(name));
+        _symbolTable.exitMethod();
     }
     public void visit(Formal n)
     {
         // TODO: record type
-        addBinding(n.i.s, new SymbolInfo(n.i.s));
+        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, null)));
     }
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }

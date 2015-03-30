@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -cp "src/;lib/\*" NameAnalysisTest $1
+java -cp "lib/\*;src/" NameAnalysisTest $1

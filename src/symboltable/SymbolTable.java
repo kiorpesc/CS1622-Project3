@@ -1,123 +1,118 @@
 package symboltable;
 
+import java.util.*;
+
 // Concrete implementation of a SymbolTable that allows clients to
 // add/remove bindings and scopes (i.e., construct the SymbolTable piecemeal).
 public class SymbolTable implements ISymbolTable
 {
-    private Environment _root; 
-    private Environment _current;
+    private Map<String, ClassSymbol> _classes = new HashMap<String, ClassSymbol>();
+    
+    private ClassSymbol _currentClass = null;
+    private MethodSymbol _currentMethod = null;
 
-    public SymbolTable()
+    public void enterClass(String id)
     {
-        _root = new Environment();
-        _current = _root;
-    }
+        if (_currentClass != null || _currentMethod != null)
+            throw new IllegalStateException("cannot enter class scope while in another class/method scope");
 
-    public void enterScope(String id)
-    {
-        Environment env = _current.getChild(id);
-        if (env == null)
+        ClassSymbol classInfo = _classes.get(id);
+        if (classInfo == null)        
             throw new NoSuchScopeException(id);
 
-        _current = env;
+        _currentClass = classInfo;
     }
 
-    public void exitScope()
+    public void enterMethod(String id)
     {
-        Environment env = _current.getParent();
-        if (env == null)
-            throw new IllegalStateException("cannot exit from root scope");
+        if (_currentClass == null)
+            throw new IllegalStateException("cannot enter method scope while not in a class scope");
 
-        _current = env;
+        MethodSymbol method = _currentClass.getMethod(id);
+        if (method == null)
+            throw new NoSuchScopeException(id);
+
+        _currentMethod = method;
     }
-    // Get the SymbolInfo associated with the given id.
-    public SymbolInfo getSymbol(String id) throws UnknownSymbolException
+
+    public void exitMethod()
     {        
-        SymbolInfo result = searchForSymbol(id);
+        if (_currentMethod == null)
+            throw new IllegalStateException("cannot exit from method while not in a method`");
 
-        if (result == null)
-            throw new UnknownSymbolException(id);
+        _currentMethod = null; 
+    }
 
-        return result;
+    public void exitClass()
+    {
+        if (_currentClass == null)
+            throw new IllegalStateException("cannot exit from class while not in a class");
+
+        _currentClass = null;
+    }
+
+
+    // Add a binding for a class 
+    // Returns the old binding to the identifier, or null if no such binding existed.
+    public ClassSymbol addClass(ClassSymbol symbol)
+    {
+        // TODO: check if id already has a binding in current scope
+        return _classes.put(symbol.getName(), symbol);
+    }
+
+    // Add a binding for a method to the current class
+    public MethodSymbol addMethod(MethodSymbol symbol)
+    {
+        if (_currentClass == null)
+            throw new IllegalStateException("cannot add method outside of a class");
+
+        return _currentClass.addMethod(symbol);
+    }
+
+    // Add a binding for a variable to either the current method (if it exists) or the current
+    // class. 
+    public VariableSymbol addVariable(VariableSymbol symbol)
+    {
+        if (_currentMethod != null)
+            return _currentMethod.addLocal(symbol);
+
+        if (_currentClass != null)
+            return _currentClass.addVariable(symbol);
+
+        throw new IllegalStateException("cannot add variable outside of class and method scopes");
     }
 
     public boolean hasSymbol(String id)
     {
-        return searchForSymbol(id) != null;
-    }
+        // Check if the current method has a binding for the id
+        if (_currentMethod != null && _currentMethod.hasVariable(id))
+            return true;
 
-    // Searches for the given Symbol in the current scope, returning
-    // the SymbolInfo if it exists, null otherwise.
-    private SymbolInfo searchForSymbol(String id)
-    {
-        Environment current = _current;
-        SymbolInfo result = null;
-
-        // Traverse upward through scopes to attempt to find the symbol.
-        while (result == null && current != null)
+        if (_currentClass != null)
         {
-            result = current.getSymbol(id);
-            current = current.getParent();
+            // Navigate the inheritance hierarchy to see if the binding
+            // exists somewhere in current or parent classes. 
+            ClassSymbol currentClass = _currentClass;
+            while (currentClass != null)
+            {
+                if (currentClass.hasBinding(id))
+                    return true; 
+
+                currentClass = _classes.get(currentClass.getParentName());
+            }
         }
 
-        return result;
+        // Finally, check if the id corresponds to a class. 
+        return _classes.containsKey(id);
     }
 
-    // Add a binding for a name
-    // Returns the old binding to the identifier, or null if no such binding existed.
-    public SymbolInfo addBinding(String id, SymbolInfo info)
-    {
-        // TODO: check if id already has a binding in current scope
-        return _current.addSymbol(id, info);
-    }
-
-    // Add an Environment for a name
-    public void addScope(String id)
-    {
-        // TODO: check if id already has environment in current scope
-        _current.addChild(id, new Environment(_current));
-    }
-
-    // Produces a prettily formatted String
     public String toString()
     {
-        return toString(_root, 0);
-    }
-
-    // Recursive function for producing a pretty String
-    private static String toString(Environment current, int level)
-    {
         StringBuilder result = new StringBuilder();
-        result.append("{\n");
+        
+        for (ClassSymbol currentClass : _classes.values())
+            result.append(currentClass.toString());
 
-        // Get symbols at the current Environment 
-        for (String name : current.getSymbols())
-        {
-            addTabs(result, level + 1);
-            result.append(name); 
-            result.append("\n");       
-        }            
-
-        // Recursively process child scopes        
-        for (String name : current.getChildren())
-        {
-            addTabs(result, level + 1);
-            result.append(name);
-            result.append(' ');
-            result.append(toString(current.getChild(name), level + 1));
-        }
-
-
-        addTabs(result, level);
-        result.append("}\n");
         return result.toString();
     }
-
-    private static void addTabs(StringBuilder sb, int num)
-    {
-        for (int i = 0; i < num; ++i)
-            sb.append('\t');
-    }
-
-
 }

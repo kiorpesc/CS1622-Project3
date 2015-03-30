@@ -10,14 +10,14 @@ win:
 	mv MiniJavaParser.java src/
 	mv sym.java src/
 	$(JFLEX) src/MiniJavaLexer.flex
-	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH_WIN) src/*.java
+	$(JAVAC) -cp $(CLASSPATH_WIN) src/*.java
 
 linux:
 	$(CUP) -parser MiniJavaParser src/MiniJavaParser.cup
 	mv MiniJavaParser.java src/
 	mv sym.java src/
 	$(JFLEX) src/MiniJavaLexer.flex
-	$(JAVAC) -Xlint:unchecked -cp $(CLASSPATH_LINUX) src/*.java
+	$(JAVAC) -cp $(CLASSPATH_LINUX) src/*.java
 
 clean:
 	-rm src/*.class

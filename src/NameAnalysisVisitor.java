@@ -40,44 +40,44 @@ public class NameAnalysisVisitor implements Visitor
     {   
         String name = n.i1.s;
         
-        _symbolTable.enterScope(name);
-        _symbolTable.enterScope("main");
+        _symbolTable.enterClass(name);
+        _symbolTable.enterMethod("main");
         n.s.accept(this);
-        _symbolTable.exitScope();
-        _symbolTable.exitScope();
+        _symbolTable.exitMethod();
+        _symbolTable.exitClass();
 
     }
     public void visit(ClassDeclSimple n)
     {
         String name = n.i.s;
 
-        _symbolTable.enterScope(name);
+        _symbolTable.enterClass(name);
         // just ignore VarDecls
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
 
-        _symbolTable.exitScope();
+        _symbolTable.exitClass();
     }
     public void visit(ClassDeclExtends n)
     {
         String name = n.i.s;
 
-        _symbolTable.enterScope(name);
+        _symbolTable.enterClass(name);
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
 
-        _symbolTable.exitScope();
+        _symbolTable.exitClass();
     }
     public void visit(VarDecl n) { }
     public void visit(MethodDecl n)
     {
         String name = n.i.s;
 
-        _symbolTable.enterScope(name);
+        _symbolTable.enterMethod(name);
 
         // ignore Formals, VarDecls
 
@@ -88,7 +88,7 @@ public class NameAnalysisVisitor implements Visitor
         // visit return expression
         n.e.accept(this);
 
-        _symbolTable.exitScope();
+        _symbolTable.exitMethod();
     }
     public void visit(Formal n) { }
     public void visit(IntArrayType n) { }
@@ -188,8 +188,7 @@ public class NameAnalysisVisitor implements Visitor
     }
     public void visit(This n)
     {
-        if (!_symbolTable.hasSymbol("this"))        
-            recordUnknownSymbolError("this");
+        
     }
     public void visit(NewArray n)
     {
