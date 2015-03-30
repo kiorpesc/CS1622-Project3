@@ -25,10 +25,11 @@ public class BuildSymbolTableVisitor implements Visitor
     }
 
     // Records an error if a duplicate symbol is detected
-    private void checkDuplicate(SymbolInfo oldSymbol)
+    private void checkDuplicate(SymbolInfo oldSymbol, int line, int col)
     {
         if (oldSymbol != null)
-            _errors.add("Multiply defined identifier " + oldSymbol.getName());
+            _errors.add("Multiply defined identifier " + oldSymbol.getName() +
+                " at line " + line + ", character " + col + ".");
     }
 
     public void visit(Program n)
@@ -44,12 +45,12 @@ public class BuildSymbolTableVisitor implements Visitor
     {
         // Create scope for the class
         String name = n.i1.s;
-        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)), n.getLine(), n.getColumn());
         // Enter that scope
         _symbolTable.enterClass(name);
-        
+
         // Add binding for main method
-        checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main")));
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main")), n.getLine(), n.getColumn());
 
         // exit the class
         _symbolTable.exitClass();
@@ -59,10 +60,10 @@ public class BuildSymbolTableVisitor implements Visitor
     {
         // Create scope for the class
         String name = n.i.s;
-        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)));
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name)), n.getLine(), n.getColumn());
         _symbolTable.enterClass(name);
         // visit variable declarations
-        for (int i = 0; i < n.vl.size(); ++i)        
+        for (int i = 0; i < n.vl.size(); ++i)
             n.vl.elementAt(i).accept(this);
 
         // visit method declarations
@@ -76,11 +77,11 @@ public class BuildSymbolTableVisitor implements Visitor
     {
         // Create scope for the class
         String name = n.i.s;
-        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name, n.j.s)));
+        checkDuplicate(_symbolTable.addClass(new ClassSymbol(name, n.j.s)), n.getLine(), n.getColumn());
         _symbolTable.enterClass(name);
 
         // visit variable declarations
-        for (int i = 0; i < n.vl.size(); ++i)        
+        for (int i = 0; i < n.vl.size(); ++i)
             n.vl.elementAt(i).accept(this);
 
         // visit method declarations
@@ -93,13 +94,13 @@ public class BuildSymbolTableVisitor implements Visitor
     public void visit(VarDecl n)
     {
         // TODO: add Type to Symbol
-        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, n.t)));
+        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, n.t)), n.getLine(), n.getColumn());
     }
     public void visit(MethodDecl n)
     {
         // Create a scope for the method
         String name = n.i.s;
-        checkDuplicate(_symbolTable.addMethod(new MethodSymbol(name)));
+        checkDuplicate(_symbolTable.addMethod(new MethodSymbol(name)), n.getLine(), n.getColumn());
         _symbolTable.enterMethod(name);
 
         // TODO: do we need to add symbol for 'this'?
@@ -118,7 +119,7 @@ public class BuildSymbolTableVisitor implements Visitor
     public void visit(Formal n)
     {
         // TODO: record type
-        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, null)));
+        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, null)), n.getLine(), n.getColumn());
     }
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }
