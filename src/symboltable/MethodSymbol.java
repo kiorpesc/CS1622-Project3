@@ -7,7 +7,7 @@ import java.util.*;
 // Holds information relevant to a Method symbol.
 public class MethodSymbol extends SymbolInfo 
 {
-    private Map<String, VariableSymbol> _formals = new HashMap<String, VariableSymbol>();
+    private Map<String, VariableSymbol> _formals = new LinkedHashMap<String, VariableSymbol>();
     private Map<String, VariableSymbol> _locals = new HashMap<String, VariableSymbol>();
 
     private Type _returnType;
@@ -16,6 +16,36 @@ public class MethodSymbol extends SymbolInfo
     {
         super(name);
         _returnType = returnType;
+    }
+
+    public boolean isLValue()
+    {
+        return false;
+    }
+
+    public boolean isRValue()
+    {
+        return false;
+    }
+
+    public String getSymbolType()
+    {
+        return "method";
+    }
+
+    public List<Type> getFormalTypes()
+    {
+        List<Type> result = new ArrayList<Type>();
+
+        for (String key : _formals.keySet())
+            result.add(_formals.get(key).getType());
+
+        return result;
+    }
+
+    public Type getReturnType()
+    {
+        return _returnType;
     }
 
     // Adds a VariableSymbol to the formal list, returning the old
@@ -46,11 +76,19 @@ public class MethodSymbol extends SymbolInfo
         return old;
     }
 
+    public VariableSymbol getVariable(String id)
+    {
+        if (_formals.containsKey(id))
+            return _formals.get(id);
+        return _locals.get(id);
+    }
+
     // Returns true iff a variable with the given name exists in this method's scope.
     public boolean hasVariable(String id)
     {
-        return _formals.containsKey(id) || _locals.containsKey(id);
+        return getVariable(id) != null;
     }
+
 
     public String toString()
     {

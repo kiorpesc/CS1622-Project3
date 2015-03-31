@@ -13,6 +13,21 @@ public class VariableSymbol extends SymbolInfo
         _type = t;
     }
 
+    public boolean isLValue()
+    {
+        return true;
+    }
+
+    public boolean isRValue()
+    {
+        return true;
+    }
+
+    public String getSymbolType()
+    {
+        return "variable";
+    }
+
     public Type getType()
     {
         return _type;

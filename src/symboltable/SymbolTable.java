@@ -51,11 +51,15 @@ public class SymbolTable implements ISymbolTable
         _currentClass = null;
     }
 
-    public boolean hasSymbol(String id)
+    public SymbolInfo getSymbol(String id)
     {
         // Check if the current method has a binding for the id
-        if (_currentMethod != null && _currentMethod.hasVariable(id))
-            return true;
+        if (_currentMethod != null)
+        {
+            VariableSymbol symbol = _currentMethod.getVariable(id);
+            if (symbol != null)
+                return symbol;
+        }
 
         if (_currentClass != null)
         {
@@ -64,16 +68,23 @@ public class SymbolTable implements ISymbolTable
             ClassSymbol currentClass = _currentClass;
             while (currentClass != null)
             {
-                if (currentClass.hasBinding(id))
-                    return true; 
+                SymbolInfo symbol = _currentClass.getSymbol(id);
+                if (symbol != null)
+                    return symbol;
 
                 currentClass = _classes.get(currentClass.getParentName());
             }
         }
 
         // Finally, check if the id corresponds to a class. 
-        return _classes.containsKey(id);
+        return getClass(id);
     }
+
+    public boolean hasSymbol(String id)
+    {
+        return getSymbol(id) != null;
+    }
+
 
     public ClassSymbol getClass(String id)
     {
@@ -83,6 +94,16 @@ public class SymbolTable implements ISymbolTable
     public boolean hasClass(String id)
     {
         return getClass(id) != null;
+    }
+
+    public ClassSymbol getCurrentClass()
+    {
+        return _currentClass;
+    }
+
+    public MethodSymbol getCurrentMethod()
+    {
+        return _currentMethod;
     }
 
     // Add a binding for a class 

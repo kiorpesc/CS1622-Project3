@@ -14,6 +14,9 @@ public interface ISymbolTable
     // Exit a method.
     public void exitMethod();
 
+    // Get the SymbolInfo for the symbol in the current scope
+    public SymbolInfo getSymbol(String id);
+
     // Returns true iff there's a binding for the given symbol in the current scope.
     public boolean hasSymbol(String id);
 
@@ -22,4 +25,11 @@ public interface ISymbolTable
 
     // Return true iff there's a class with the given id 
     public boolean hasClass(String id);
+
+    // Returns the current ClassSymbol
+    public ClassSymbol getCurrentClass();
+
+    // Returns the current MethodSymbol
+    public MethodSymbol getCurrentMethod();
+
 }
