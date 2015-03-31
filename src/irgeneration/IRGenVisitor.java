@@ -135,7 +135,13 @@ public class IRGenVisitor {
 
   public String visit(ArrayAssign n)
   {
-    // fuck?
+    // TODO: verify how args should be ordered
+    String arg1 = n.i.accept(this);
+    String arg2 = n.e1.accept(this);
+    String op = null;
+    String result = n.e2.accept(this);
+    IRArrayAssign quad = new IRArrayAssign(op, arg1, arg2, result);
+    _irList.add(quad);
     return null;
   }
 
