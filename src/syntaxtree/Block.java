@@ -22,4 +22,8 @@ public class Block extends Statement {
   public Type accept(TypeVisitor v) {
     return v.visit(this);
   }
+
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
 }

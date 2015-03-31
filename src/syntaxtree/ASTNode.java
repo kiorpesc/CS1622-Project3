@@ -21,4 +21,8 @@ public class ASTNode {
   {
     _column = column;
   }
+
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
 }

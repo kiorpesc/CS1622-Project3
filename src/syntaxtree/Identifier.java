@@ -26,4 +26,8 @@ public class Identifier extends ASTNode{
   public String toString(){
     return s;
   }
+
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
 }

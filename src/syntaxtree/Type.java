@@ -29,4 +29,8 @@ public abstract class Type extends ASTNode{
   {
     return _name;
   }
+
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
 }

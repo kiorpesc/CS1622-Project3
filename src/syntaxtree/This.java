@@ -17,4 +17,8 @@ public class This extends Exp {
   public Type accept(TypeVisitor v) {
     return v.visit(this);
   }
+
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
 }

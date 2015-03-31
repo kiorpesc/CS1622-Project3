@@ -24,4 +24,8 @@ public class ArrayAssign extends Statement {
     return v.visit(this);
   }
 
+  public String accept(IRGenVisitor v) {
+    return v.visit(this);
+  }
+
 }
