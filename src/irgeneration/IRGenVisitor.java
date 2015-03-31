@@ -115,10 +115,28 @@ public class IRGenVisitor {
     return null;
   }
 
-  // TODO: this method
+  // TODO: this method - needs to be treated like a Call
   public String visit(Print n)
   {
-    return null;
+    // print only needs to take one param?
+
+    // prepare param call
+
+    String arg1 = n.e.accept(this);
+    String arg2 = null;
+    String op = "param";
+    String result = null;
+    IRParam quad = new IRParam(op, arg1, arg2, result);
+    _irList.add(quad);
+
+    op = "call";
+    arg1 = "System.out.println";
+    arg2 = "1";  // only takes one param
+    result = "t"+_tempCount++;
+    IRCall quadCall = new IRCall(op, arg1, arg2, result);
+    _irList.add(quadCall);
+
+    return result;
   }
 
   public String visit(Assign n)
@@ -206,7 +224,7 @@ public class IRGenVisitor {
   public String visit(ArrayLookup n)
   {
     String arg1 = n.e1.accept(this);
-    String arg2 = n.e1.accept(this);
+    String arg2 = n.e2.accept(this);
     String result = "t"+_tempCount;
     _tempCount++;
     String op = "";
