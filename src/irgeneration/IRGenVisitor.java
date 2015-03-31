@@ -177,7 +177,6 @@ public class IRGenVisitor {
 
   public String visit(Times n)
   {
-    System.out.println("Hit TIMES");
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
     String result = "t"+_tempCount;
