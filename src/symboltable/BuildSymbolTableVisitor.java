@@ -121,7 +121,7 @@ public class BuildSymbolTableVisitor implements Visitor
     }
     public void visit(Formal n)
     {
-        checkDuplicate(_symbolTable.addVariable(new VariableSymbol(n.i.s, n.t)), n.getLine(), n.getColumn());
+        checkDuplicate(_symbolTable.getCurrentMethod().addFormal(new VariableSymbol(n.i.s, n.t)), n.getLine(), n.getColumn());
     }
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }

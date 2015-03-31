@@ -4,7 +4,7 @@ import symboltable.*;
 import syntaxtree.*;
 import visitor.*;
 
-public class NameAnalysisTest
+public class Test
 {
     public static void main(String[] args) throws Exception
     {
@@ -30,12 +30,18 @@ public class NameAnalysisTest
         System.out.println("======== Errors ========");
         System.out.println(symbolTableBuilder.getErrors());
 
-        if (symbolTableBuilder.getErrors().isEmpty())
-        {
-            NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
-            nameAnalysis.visit(program);
-            System.out.println(nameAnalysis.getErrors());
-        }
+        if (!symbolTableBuilder.getErrors().isEmpty())
+            System.exit(1);
 
+        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
+        nameAnalysis.visit(program);
+        System.out.println(nameAnalysis.getErrors());
+
+        if (!nameAnalysis.getErrors().isEmpty())
+            System.exit(1);
+        
+        TypeCheckVisitor typeChecker = new TypeCheckVisitor(symbolTable);
+        typeChecker.visit(program);
+        System.out.println(typeChecker.getErrors());
     }
 }

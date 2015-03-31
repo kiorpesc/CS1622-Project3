@@ -25,6 +25,16 @@ public abstract class Type extends ASTNode{
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
 
+  public boolean equals(Object o)
+  {
+    if (o instanceof Type)
+    {
+      Type other = (Type)o;
+      return _name.equals(other.getName());
+    }
+    return false;
+  }
+
   public String toString()
   {
     return _name;

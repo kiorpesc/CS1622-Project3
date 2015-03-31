@@ -20,6 +20,21 @@ public class ClassSymbol extends SymbolInfo
         _parentName = parent;
     }
 
+    public boolean isLValue()
+    {
+        return false;
+    }
+
+    public boolean isRValue()
+    {
+        return false;
+    }
+
+    public String getSymbolType()
+    {
+        return "class";
+    }
+
     // Retrieve the method specified by id
     public MethodSymbol getMethod(String id)
     {
@@ -41,6 +56,14 @@ public class ClassSymbol extends SymbolInfo
         return _variables.get(id);
     }
 
+    // Return the Symbol specified by id
+    public SymbolInfo getSymbol(String id)
+    {
+        SymbolInfo symbol = getMethod(id);
+
+        return (symbol != null) ? symbol : getVariable(id);
+    }
+
     // Add a variable to this class, returning the old VariableSymbol mapped to the
     // name if it exists (null otherwise).
     public VariableSymbol addVariable(VariableSymbol symbol)
@@ -48,12 +71,6 @@ public class ClassSymbol extends SymbolInfo
         VariableSymbol old = _variables.get(symbol.getName());
         _variables.put(symbol.getName(), symbol);
         return old;
-    }
-
-    // Returns true iff the given id has a binding in this class's scope
-    public boolean hasBinding(String id)
-    {
-        return _methods.containsKey(id) || _variables.containsKey(id);
     }
 
     // Returns the name of the parent class.

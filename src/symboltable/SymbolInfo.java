@@ -13,4 +13,8 @@ public abstract class SymbolInfo
     {
         return _name;        
     }
+
+    public abstract boolean isLValue();
+    public abstract boolean isRValue();
+    public abstract String getSymbolType();    
 }

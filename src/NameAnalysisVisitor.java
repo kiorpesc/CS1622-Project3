@@ -52,7 +52,10 @@ public class NameAnalysisVisitor implements Visitor
         String name = n.i.s;
 
         _symbolTable.enterClass(name);
-        // just ignore VarDecls
+        
+        // visit VarDecls
+        for (int i = 0; i < n.vl.size(); ++i)
+            n.vl.elementAt(i).accept(this);
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
@@ -66,20 +69,33 @@ public class NameAnalysisVisitor implements Visitor
 
         _symbolTable.enterClass(name);
 
+        // visit VarDecls
+        for (int i = 0; i < n.vl.size(); ++i)
+            n.vl.elementAt(i).accept(this);
+
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
 
         _symbolTable.exitClass();
     }
-    public void visit(VarDecl n) { }
+    public void visit(VarDecl n) 
+    { 
+        n.t.accept(this);
+    }
     public void visit(MethodDecl n)
     {
         String name = n.i.s;
 
         _symbolTable.enterMethod(name);
+        
+        // check formals
+        for (int i = 0; i < n.fl.size(); ++i)
+            n.fl.elementAt(i).accept(this);
 
-        // ignore Formals, VarDecls
+        // check vardecls
+        for (int i = 0; i < n.vl.size(); ++i)
+            n.vl.elementAt(i).accept(this);
 
         // visit statements
         for (int i = 0; i < n.sl.size(); ++i)
@@ -90,13 +106,17 @@ public class NameAnalysisVisitor implements Visitor
 
         _symbolTable.exitMethod();
     }
-    public void visit(Formal n) { }
+    public void visit(Formal n) 
+    { 
+        // check its type 
+        n.t.accept(this);
+    }
     public void visit(IntArrayType n) { }
     public void visit(BooleanType n) { }
     public void visit(IntegerType n) { }
     public void visit(IdentifierType n)
     {
-        if (!_symbolTable.hasSymbol(n.s))
+        if (!_symbolTable.hasClass(n.s))
             recordUnknownSymbolError(n.s, n.getLine(), n.getColumn());
     }
     public void visit(Block n)
