@@ -54,7 +54,17 @@ public class IRGenVisitor {
     {
       n.sl.elementAt(i).accept(this);
     }
-    return null;
+
+    // create return statement IR
+    String op = "return";
+    String arg1 = n.e.accept(this);
+    String arg2 = null;
+    String result = null;
+    IRReturn quad = new IRReturn(op, arg1, arg2, result);
+
+    _irList.add(quad);
+
+    return arg1;
   }
 
   public String visit(Formal n){return null;}
@@ -213,13 +223,39 @@ public class IRGenVisitor {
 
   public String visit(Call n)
   {
-    String op = "call";
-    String arg1 = n.e.accept(this);
-    arg1 += n.i;
-    String result = "t"+_tempCount++;
-    String arg2 = ""+n.el.size();
-    IRCall quad = new IRCall(op, arg1, arg2, result);
-    _irList.add(quad);
+    ArrayList<IRParam> param_list = new ArrayList<IRParam>();
+
+    // create params
+    /// IMPLICIT THIS ///
+    String op = "param";
+    String arg1 = n.e.accept(this); // get the class to pass in as implicit "this"
+    String arg2 = null;
+    String result = null;
+    IRParam quad = new IRParam(op, arg1, arg2, result);
+    param_list.add(quad);
+
+    // this loop will ensure that all expressions are evaluated
+    // and their IR appended to the irList BEFORE we add
+    // the param statements
+    for(int i = 0; i < n.el.size(); i++)
+    {
+      arg1 = n.el.elementAt(i).accept(this);
+      quad = new IRParam(op, arg1, arg2, result);
+      param_list.add(quad);
+    }
+
+    for(IRParam ir : param_list)
+    {
+      _irList.add(ir);
+    }
+
+    op = "call";
+    //arg1 = n.e.accept(this);
+    arg1 = n.i.accept(this);
+    result = "t"+_tempCount++;
+    arg2 = ""+(n.el.size() + 1);  // add one for implicit 'this'
+    IRCall quadCall = new IRCall(op, arg1, arg2, result);
+    _irList.add(quadCall);
     return result;
   }
 
