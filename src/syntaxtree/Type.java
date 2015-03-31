@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public abstract class Type extends ASTNode{
   private String _name;
@@ -24,6 +25,7 @@ public abstract class Type extends ASTNode{
 
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
+  public abstract String accept(IRGenVisitor v);
 
   public boolean equals(Object o)
   {
@@ -40,7 +42,5 @@ public abstract class Type extends ASTNode{
     return _name;
   }
 
-  public String accept(IRGenVisitor v) {
-    return v.visit(this);
-  }
+
 }

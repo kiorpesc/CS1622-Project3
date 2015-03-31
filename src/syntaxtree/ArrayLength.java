@@ -1,6 +1,8 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
+
 
 public class ArrayLength extends Exp {
   public Exp e;

@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public class Program extends ASTNode{
   public MainClass m;

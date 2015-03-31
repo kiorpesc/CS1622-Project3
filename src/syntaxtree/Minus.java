@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public class Minus extends Exp {
   public Exp e1,e2;

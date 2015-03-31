@@ -30,8 +30,4 @@ public class FormalList extends ASTNode{
    public int size() {
       return list.size();
    }
-
-   public String accept(IRGenVisitor v) {
-     return v.visit(this);
-   }
 }

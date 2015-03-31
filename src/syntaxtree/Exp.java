@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public abstract class Exp extends ASTNode{
 

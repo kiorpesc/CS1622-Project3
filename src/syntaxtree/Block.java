@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public class Block extends Statement {
   public StatementList sl;

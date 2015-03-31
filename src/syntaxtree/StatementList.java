@@ -1,5 +1,4 @@
 package syntaxtree;
-
 import java.util.Vector;
 
 public class StatementList extends ASTNode{
@@ -31,7 +30,4 @@ public class StatementList extends ASTNode{
       return list.size();
    }
 
-   public String accept(IRGenVisitor v) {
-     return v.visit(this);
-   }
 }

@@ -2,6 +2,11 @@ package irgeneration;
 
 public class IRAssignment extends IRQuadruple{
 
+  public IRAssignment(String op, String arg1, String arg2, String result)
+  {
+    super(op, arg1, arg2, result);
+  }
+
   public String toString()
   {
       StringBuilder output = new StringBuilder(_result.toString());

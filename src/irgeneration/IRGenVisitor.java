@@ -1,5 +1,9 @@
 package irgeneration;
 
+import java.util.ArrayList;
+
+import syntaxtree.*;
+import symboltable.*;
 import visitor.*;
 
 public class IRGenVisitor {
@@ -13,11 +17,10 @@ public class IRGenVisitor {
     _tempCount = 0;
   }
 
-  public void visit(Program n)
+  public String visit(Program n)
   {
     n.m.accept(this);
     for ( int i = 0; i < n.cl.size(); i++ ) {
-      System.out.println();
       n.cl.elementAt(i).accept(this);
     }
     return null;
@@ -30,12 +33,16 @@ public class IRGenVisitor {
 
   public String visit(ClassDeclSimple n)
   {
-    return n.aml.accept(this);
+    for(int i = 0; i < n.ml.size(); i++)
+      n.ml.elementAt(i).accept(this);
+    return null;
   }
 
   public String visit(ClassDeclExtends n)
   {
-    return n.aml.accept(this);
+    for(int i = 0; i < n.ml.size(); i++)
+      n.ml.elementAt(i).accept(this);
+    return null;
   }
 
   public String visit(VarDecl n){return null;}
@@ -66,11 +73,35 @@ public class IRGenVisitor {
 
   public String visit(If n)
   {
-    return null;
+    String result = "iffalse";
+    String op = "goto";
+    String arg1 = n.e.accept(this);
+    String arg2 = "ELSELABEL";
+    IRCondJump quad = new IRCondJump(op, arg1, arg2, result);
+    _irList.add(quad);
+    return result;
   }
 
   public String visit(While n)
   {
+    // iffalse x goto ENDWHILE
+    String op = "goto";
+    String arg2 = "ENDWHILE";
+    String arg1 = n.e.accept(this);
+    String result = "iffalse";
+    IRCondJump quad = new IRCondJump(op, arg1, arg2, result);
+    _irList.add(quad);
+
+    // statements
+    n.s.accept(this);
+
+    // goto BEGINWHILE
+    result = null;
+    arg1 = "BEGINWHILE";
+    arg2 = null;
+    IRUncondJump uquad = new IRUncondJump(op, arg1, arg2, result);
+    _irList.add(uquad);
+
     return null;
   }
 
@@ -83,12 +114,13 @@ public class IRGenVisitor {
   public String visit(Assign n)
   {
     String result = n.i.s;
-    n.e.accept(this); // generate the other lines of IR first
+    String arg1 = n.e.accept(this); // generate the other lines of IR first
     // grab the last quadruple for modification
-    IRQuaddruple quad = (IRQuadruple)_irList.remove(_irList.size()-1);
-    quad.setResult(result);
+    String arg2 = null;
+    String op = null;
+    IRCopy quad = new IRCopy(op, arg1, arg2, result);
     _irList.add(quad);
-    return null;
+    return result;
   }
 
   public String visit(ArrayAssign n)
@@ -145,12 +177,13 @@ public class IRGenVisitor {
 
   public String visit(Times n)
   {
+    System.out.println("Hit TIMES");
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
     String result = "t"+_tempCount;
     _tempCount++;
     String op = "*";
-    Assignment quad = new Assignment(op, arg1, arg2, result);
+    IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
@@ -173,7 +206,7 @@ public class IRGenVisitor {
     String arg1 = n.e.accept(this);
     String arg2 = "";
     String result = "t"+_tempCount;
-    tempCount++;
+    _tempCount++;
     IRArrayLength quad = new IRArrayLength(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -183,9 +216,8 @@ public class IRGenVisitor {
   {
     String op = "call";
     String arg1 = n.e.accept(this);
-    String arg1 += n.i;
-    String result = "t"+_tempCount;
-    tempCount++;
+    arg1 += n.i;
+    String result = "t"+_tempCount++;
     String arg2 = ""+n.el.size();
     IRCall quad = new IRCall(op, arg1, arg2, result);
     _irList.add(quad);
@@ -235,7 +267,7 @@ public class IRGenVisitor {
     String arg1 = n.i.accept(this);
     String arg2 = null;
     String result = "t"+_tempCount;
-    tempCount++;
+    _tempCount++;
     IRNewObject quad = new IRNewObject(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -252,7 +284,7 @@ public class IRGenVisitor {
     return result;
   }
 
-  public void visit(Identifier n)
+  public String visit(Identifier n)
   {
     return n.s;
   }
@@ -264,6 +296,7 @@ public class IRGenVisitor {
 
   public void printIRList()
   {
+    System.out.println("Lines: " + _irList.size());
     for(IRQuadruple ir : _irList)
     {
       System.out.println(ir.toString());

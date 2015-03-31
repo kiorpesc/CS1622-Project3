@@ -1,6 +1,7 @@
 package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
+import irgeneration.IRGenVisitor;
 
 public class ArrayAssign extends Statement {
   public Identifier i;
@@ -27,5 +28,4 @@ public class ArrayAssign extends Statement {
   public String accept(IRGenVisitor v) {
     return v.visit(this);
   }
-
 }

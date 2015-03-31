@@ -1,8 +1,8 @@
 package irgeneration;
 
-public class IRArrayLookup extends IRQuadruple{
+public class IRCall extends IRQuadruple{
 
-  public IRArrayLookup(String op, String arg1, String arg2, String result)
+  public IRCall(String op, String arg1, String arg2, String result)
   {
     super(op, arg1, arg2, result);
   }
@@ -11,10 +11,11 @@ public class IRArrayLookup extends IRQuadruple{
   {
       StringBuilder output = new StringBuilder(_result.toString());
       output.append(" := ");
+      output.append(_op);
+      output.append(" ");
       output.append(_arg1);
-      output.append("[");
+      output.append(" ");
       output.append(_arg2);
-      output.append("]");
       return output.toString();
   }
 
