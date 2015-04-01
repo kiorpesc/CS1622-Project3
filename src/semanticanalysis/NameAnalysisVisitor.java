@@ -7,26 +7,19 @@ import syntaxtree.*;
 import java.util.*;
 
 // Check the AST for usage of undefined names
-public class NameAnalysisVisitor implements Visitor
+public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 {
     private ISymbolTable _symbolTable;
-    private ErrorManager _errorManager = new ErrorManager();
 
     public NameAnalysisVisitor(ISymbolTable symbolTable)
     {
         _symbolTable = symbolTable;
     }
 
-    // Returns a list of unknown symbol errors encountered.
-    public List<String> getErrors()
-    {
-        return _errorManager.getErrors();
-    }
-
     // Records an unknown symbol error.
     private void recordUnknownSymbolError(String name, int line, int col)
     {
-        _errorManager.addError("Use of undefined identifier " + name, line, col);
+        addError("Use of undefined identifier " + name, line, col);
     }
 
     public void visit(Program n)

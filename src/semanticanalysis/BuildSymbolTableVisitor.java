@@ -8,10 +8,9 @@ import java.util.*;
 
 // Visitor implementation that builds a SymbolTable
 // Also recognizes redefinition errors
-public class BuildSymbolTableVisitor implements Visitor
+public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
 {
     private SymbolTable _symbolTable = new SymbolTable();
-    private ErrorManager _errorManager = new ErrorManager();
 
     // Returns the SymbolTable.
     public ISymbolTable getSymbolTable()
@@ -19,20 +18,11 @@ public class BuildSymbolTableVisitor implements Visitor
         return _symbolTable;
     }
 
-    // Returns a list of redefinition errors encountered.
-    public List<String> getErrors()
-    {
-        return _errorManager.getErrors();
-    }
-
     // Records an error if a duplicate symbol is detected
     private void checkDuplicate(SymbolInfo oldSymbol, int line, int col)
     {
         if (oldSymbol != null)
-        {
-            _errorManager.addError("Multiply defined identifier " + oldSymbol.getName(),
-                                    line, col);
-        }
+            addError("Multiply defined identifier " + oldSymbol.getName(), line, col);
     }
 
     public void visit(Program n)

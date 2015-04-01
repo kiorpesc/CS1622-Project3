@@ -6,19 +6,13 @@ import visitor.TypeVisitor;
 
 import java.util.*;
 
-public class TypeCheckVisitor implements TypeVisitor 
+public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor 
 {
     private ISymbolTable _symbolTable;
-    private ErrorManager _errorManager = new ErrorManager();
 
     public TypeCheckVisitor(ISymbolTable symbolTable)
     {
         _symbolTable = symbolTable;
-    }
-
-    public List<String> getErrors()
-    {
-        return _errorManager.getErrors();
     }
 
     private boolean areTypesCompatible(Type lhs, Type rhs)
@@ -51,7 +45,7 @@ public class TypeCheckVisitor implements TypeVisitor
     private void validateIntegerOperator(Exp lhs, Exp rhs, String op)
     {
         if (!(lhs.accept(this) instanceof IntegerType) || !(rhs.accept(this) instanceof IntegerType))
-            _errorManager.addError("Non-integer operand for operator " + op, lhs.getLine(), lhs.getColumn());
+            addError("Non-integer operand for operator " + op, lhs.getLine(), lhs.getColumn());
 
     }
 
@@ -163,7 +157,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type conditionalType = n.e.accept(this);
         if (!(conditionalType instanceof BooleanType))
-            _errorManager.addError("Non-boolean expression used as the condition of if statement", n.getLine(), n.getColumn());
+            addError("Non-boolean expression used as the condition of if statement", n.getLine(), n.getColumn());
 
         n.s1.accept(this);
         n.s2.accept(this);
@@ -173,7 +167,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type conditionalType = n.e.accept(this);
         if (!(conditionalType instanceof BooleanType))
-            _errorManager.addError("Non-boolean expression used as the condition of while statement", n.getLine(), n.getColumn());
+            addError("Non-boolean expression used as the condition of while statement", n.getLine(), n.getColumn());
 
         n.s.accept(this);
         return null;
@@ -182,7 +176,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof IntegerType))
-            _errorManager.addError("Call of method System.out.println does not match its declared signature", n.getLine(), n.getColumn());
+            addError("Call of method System.out.println does not match its declared signature", n.getLine(), n.getColumn());
 
         return null;
     }
@@ -193,7 +187,7 @@ public class TypeCheckVisitor implements TypeVisitor
         // Check for validity of lvalue
         if (!symbol.isLValue())
         {
-            _errorManager.addError("Invalid l-value, " + symbol.getName() + " is a " + symbol.getSymbolType(), n.getLine(), n.getColumn());
+            addError("Invalid l-value, " + symbol.getName() + " is a " + symbol.getSymbolType(), n.getLine(), n.getColumn());
         }
 
         Type expType = n.e.accept(this);
@@ -206,7 +200,7 @@ public class TypeCheckVisitor implements TypeVisitor
             Type variableType = variable.getType();
 
             if (!areTypesCompatible(variableType, expType))
-                _errorManager.addError("Type mismatch during assignment", n.getLine(), n.getColumn());
+                addError("Type mismatch during assignment", n.getLine(), n.getColumn());
         }
         return null;
     }
@@ -219,7 +213,7 @@ public class TypeCheckVisitor implements TypeVisitor
 
         // Arrays are only integers
         if (!(rhsType instanceof IntegerType))
-            _errorManager.addError("Type mismatch during assignment", n.getLine(), n.getColumn());
+            addError("Type mismatch during assignment", n.getLine(), n.getColumn());
 
         return null;
     }
@@ -229,7 +223,7 @@ public class TypeCheckVisitor implements TypeVisitor
         Type rhsType = n.e2.accept(this);
 
         if (!(lhsType instanceof BooleanType) || !(rhsType instanceof BooleanType))
-            _errorManager.addError("Attempt to use boolean operator && on non-boolean operands", n.getLine(), n.getColumn());
+            addError("Attempt to use boolean operator && on non-boolean operands", n.getLine(), n.getColumn());
 
         return new BooleanType();
     }
@@ -267,7 +261,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof IntArrayType))
-            _errorManager.addError("Length property only applies to arrays", n.getLine(), n.getColumn());
+            addError("Length property only applies to arrays", n.getLine(), n.getColumn());
 
         return new IntegerType();
     }
@@ -285,7 +279,7 @@ public class TypeCheckVisitor implements TypeVisitor
                 MethodSymbol method = classType.getMethod(n.i.s);
                 if (method == null)
                 {
-                    _errorManager.addError("Attempt to call a non-method", n.getLine(), n.getColumn());
+                    addError("Attempt to call a non-method", n.getLine(), n.getColumn());
                 }
                 else
                 {
@@ -295,7 +289,7 @@ public class TypeCheckVisitor implements TypeVisitor
                     // Validate number of arguments
                     if (expTypes.size() != formalTypes.size())
                     {
-                        _errorManager.addError("Call of method " + method.getName() 
+                        addError("Call of method " + method.getName() 
                                 + " does not match its declared number of arguments", 
                                 n.getLine(), n.getColumn());
                     }                    
@@ -306,7 +300,7 @@ public class TypeCheckVisitor implements TypeVisitor
                         {
                             if (!areTypesCompatible(expTypes.get(i), formalTypes.get(i)))
                             {
-                                _errorManager.addError("Call of method " + method.getName() + " does not match its declared signature",
+                                addError("Call of method " + method.getName() + " does not match its declared signature",
                                         n.getLine(), n.getColumn());
                                 break;
                             }
@@ -347,7 +341,7 @@ public class TypeCheckVisitor implements TypeVisitor
     public Type visit(This n)
     {
         if (_symbolTable.getCurrentMethod().getName().equals("main"))
-            _errorManager.addError("Illegal use of the keyword 'this' in static method", n.getLine(), n.getColumn());
+            addError("Illegal use of the keyword 'this' in static method", n.getLine(), n.getColumn());
 
         return new IdentifierType(_symbolTable.getCurrentClass().getName());
     }
@@ -363,7 +357,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof BooleanType))
-            _errorManager.addError("Attempt to use boolean operator ! on non-boolean operand", n.getLine(), n.getColumn());
+            addError("Attempt to use boolean operator ! on non-boolean operand", n.getLine(), n.getColumn());
 
         return new BooleanType();
     }

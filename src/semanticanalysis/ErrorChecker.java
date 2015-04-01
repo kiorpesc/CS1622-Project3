@@ -2,7 +2,7 @@ package semanticanalysis;
 
 import java.util.*;
 
-public class ErrorManager
+public abstract class ErrorChecker
 {
     private List<String> _errors = new ArrayList<String>();
 
@@ -11,7 +11,7 @@ public class ErrorManager
         return _errors;
     }
 
-    public void addError(String error, int line, int column)
+    protected void addError(String error, int line, int column)
     {
         _errors.add(formatError(error, line, column));
     }
