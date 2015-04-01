@@ -30,3 +30,6 @@ structure:
             - Method needs Return Type, Parameter List (list of types)
             - Variables need Type
             - Class needs Extended Types, Variables, Methods
+
+TODO:
+

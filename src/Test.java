@@ -29,7 +29,8 @@ public class Test
 
 
         System.out.println("======== Symbol Table Errors ========");
-        System.out.println(symbolTableBuilder.getErrors());
+        for (String error : symbolTableBuilder.getErrors())
+            System.out.println(error);
 
         if (!symbolTableBuilder.getErrors().isEmpty())
             System.exit(1);
@@ -38,7 +39,8 @@ public class Test
 
         NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
         nameAnalysis.visit(program);
-        System.out.println(nameAnalysis.getErrors());
+        for (String error : nameAnalysis.getErrors())
+            System.out.println(error);
 
         if (!nameAnalysis.getErrors().isEmpty())
             System.exit(1);
@@ -47,7 +49,8 @@ public class Test
 
         TypeCheckVisitor typeChecker = new TypeCheckVisitor(symbolTable);
         typeChecker.visit(program);
-        System.out.println(typeChecker.getErrors());
+        for (String error : typeChecker.getErrors())
+            System.out.println(error);
 
         System.out.println("======== Intermediate Representation ========");
 

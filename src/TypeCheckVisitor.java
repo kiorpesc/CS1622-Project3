@@ -19,6 +19,21 @@ public class TypeCheckVisitor implements TypeVisitor
         return _errors;
     }
 
+    private void addError(String error, int line, int column)
+    {
+        _errors.add(formatError(error, line, column));
+    }
+
+    private String formatError(String error, int line, int column)
+    {
+        StringBuilder result = new StringBuilder(error);
+        result.append(" at ");
+        result.append(line);
+        result.append(", character ");
+        result.append(column);
+        return result.toString();
+    }
+
     private boolean areTypesCompatible(Type lhs, Type rhs)
     {
         if (lhs instanceof IdentifierType && rhs instanceof IdentifierType)
@@ -49,7 +64,7 @@ public class TypeCheckVisitor implements TypeVisitor
     private void validateIntegerOperator(Exp lhs, Exp rhs, String op)
     {
         if (!(lhs.accept(this) instanceof IntegerType) || !(rhs.accept(this) instanceof IntegerType))
-            _errors.add("Non-integer operand for operator " + op);
+            addError("Non-integer operand for operator " + op, lhs.getLine(), lhs.getColumn());
 
     }
 
@@ -161,7 +176,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type conditionalType = n.e.accept(this);
         if (!(conditionalType instanceof BooleanType))
-            _errors.add("Non-boolean expression used as the condition of if statement");
+            addError("Non-boolean expression used as the condition of if statement", n.getLine(), n.getColumn());
 
         n.s1.accept(this);
         n.s2.accept(this);
@@ -171,7 +186,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type conditionalType = n.e.accept(this);
         if (!(conditionalType instanceof BooleanType))
-            _errors.add("Non-boolean expression used as the condition of while statement");
+            addError("Non-boolean expression used as the condition of while statement", n.getLine(), n.getColumn());
 
         n.s.accept(this);
         return null;
@@ -180,7 +195,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof IntegerType))
-            _errors.add("Call of method System.out.println does not match its declared signature");
+            addError("Call of method System.out.println does not match its declared signature", n.getLine(), n.getColumn());
 
         return null;
     }
@@ -191,7 +206,7 @@ public class TypeCheckVisitor implements TypeVisitor
         // Check for validity of lvalue
         if (!symbol.isLValue())
         {
-            _errors.add("Invalid l-value, " + symbol.getName() + " is a " + symbol.getSymbolType());
+            addError("Invalid l-value, " + symbol.getName() + " is a " + symbol.getSymbolType(), n.getLine(), n.getColumn());
         }
 
         Type expType = n.e.accept(this);
@@ -204,7 +219,7 @@ public class TypeCheckVisitor implements TypeVisitor
             Type variableType = variable.getType();
 
             if (!areTypesCompatible(variableType, expType))
-                _errors.add("Type mismatch during assignment");
+                addError("Type mismatch during assignment", n.getLine(), n.getColumn());
         }
         return null;
     }
@@ -217,7 +232,7 @@ public class TypeCheckVisitor implements TypeVisitor
 
         // Arrays are only integers
         if (!(rhsType instanceof IntegerType))
-            _errors.add("Type mismatch during assignment");
+            addError("Type mismatch during assignment", n.getLine(), n.getColumn());
 
         return null;
     }
@@ -227,7 +242,7 @@ public class TypeCheckVisitor implements TypeVisitor
         Type rhsType = n.e2.accept(this);
 
         if (!(lhsType instanceof BooleanType) || !(rhsType instanceof BooleanType))
-            _errors.add("Attempt to use boolean operator && on non-boolean operands");
+            addError("Attempt to use boolean operator && on non-boolean operands", n.getLine(), n.getColumn());
 
         return new BooleanType();
     }
@@ -265,7 +280,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof IntArrayType))
-            _errors.add("Length property only applies to arrays");
+            addError("Length property only applies to arrays", n.getLine(), n.getColumn());
 
         return new IntegerType();
     }
@@ -283,7 +298,7 @@ public class TypeCheckVisitor implements TypeVisitor
                 MethodSymbol method = classType.getMethod(n.i.s);
                 if (method == null)
                 {
-                    _errors.add("Attempt to call a non-method");
+                    addError("Attempt to call a non-method", n.getLine(), n.getColumn());
                 }
                 else
                 {
@@ -293,7 +308,9 @@ public class TypeCheckVisitor implements TypeVisitor
                     // Validate number of arguments
                     if (expTypes.size() != formalTypes.size())
                     {
-                        _errors.add("Call of method " + method.getName() + " does not match its declared number of arguments");
+                        addError("Call of method " + method.getName() 
+                                + " does not match its declared number of arguments", 
+                                n.getLine(), n.getColumn());
                     }                    
                     else
                     {
@@ -302,7 +319,8 @@ public class TypeCheckVisitor implements TypeVisitor
                         {
                             if (!areTypesCompatible(expTypes.get(i), formalTypes.get(i)))
                             {
-                                _errors.add("Call of method " + method.getName() + " does not match its declared signature");
+                                addError("Call of method " + method.getName() + " does not match its declared signature",
+                                        n.getLine(), n.getColumn());
                                 break;
                             }
                         }                        
@@ -342,7 +360,7 @@ public class TypeCheckVisitor implements TypeVisitor
     public Type visit(This n)
     {
         if (_symbolTable.getCurrentMethod().getName().equals("main"))
-            _errors.add("Illegal use of the keyword 'this' in static method");
+            addError("Illegal use of the keyword 'this' in static method", n.getLine(), n.getColumn());
 
         return new IdentifierType(_symbolTable.getCurrentClass().getName());
     }
@@ -358,7 +376,7 @@ public class TypeCheckVisitor implements TypeVisitor
     {
         Type expType = n.e.accept(this);
         if (!(expType instanceof BooleanType))
-            _errors.add("Attempt to use boolean operator ! on non-boolean operand");
+            addError("Attempt to use boolean operator ! on non-boolean operand", n.getLine(), n.getColumn());
 
         return new BooleanType();
     }
