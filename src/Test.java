@@ -1,6 +1,7 @@
 import java.io.*;
 
 import irgeneration.*;
+import semanticanalysis.*;
 import symboltable.*;
 import syntaxtree.*;
 import visitor.*;

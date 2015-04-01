@@ -24,6 +24,7 @@ clean:
 	-rm src/syntaxtree/*.class
 	-rm src/visitor/*.class
 	-rm src/symboltable/*.class
+	-rm src/semanticanalysis/*.class
 	-rm src/irgeneration/*.class
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
