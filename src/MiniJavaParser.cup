@@ -62,10 +62,15 @@ main_class ::=
 
 class_decl_list ::=
         class_decl_list:rest class_decl:cd
-        {: rest.addElement(cd);
-            rest.setLine(cd.getLine());
-            rest.setColumn(cd.getColumn());
-            RESULT = rest; :}
+        {:  
+            rest.addElement(cd);
+            if (cd != null)
+            {
+                rest.setLine(cd.getLine());
+                rest.setColumn(cd.getColumn());
+            }
+            RESULT = rest; 
+        :}
     |
         {: RESULT = new ClassDeclList(); :}
     ;
@@ -146,10 +151,15 @@ type ::=
 
 statement_list ::=
         statement:s statement_list:rest
-        {: rest.addFront(s);
-            rest.setLine(s.getLine());
-            rest.setColumn(s.getColumn());
-            RESULT = rest; :}
+        {:  
+            rest.addFront(s);
+            if (s != null)
+            {
+                rest.setLine(s.getLine());
+                rest.setColumn(s.getColumn());
+            }
+            RESULT = rest; 
+        :}
     |
         {: RESULT = new StatementList(); :}
     ;
