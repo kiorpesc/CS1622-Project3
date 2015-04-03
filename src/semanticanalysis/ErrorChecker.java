@@ -19,7 +19,7 @@ public abstract class ErrorChecker
     private String formatError(String error, int line, int column)
     {
         StringBuilder result = new StringBuilder(error);
-        result.append(" at ");
+        result.append(" at line ");
         result.append(line);
         result.append(", character ");
         result.append(column);
