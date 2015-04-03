@@ -2,20 +2,20 @@ package irgeneration;
 
 public class IRAssignment extends IRQuadruple{
 
-  public IRAssignment(String op, String arg1, String arg2, String result)
+  public IRAssignment(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
   {
     super(op, arg1, arg2, result);
   }
 
   public String toString()
   {
-      StringBuilder output = new StringBuilder(_result.toString());
+      StringBuilder output = new StringBuilder(_result.getName());
       output.append(" := ");
-      output.append(_arg1);
+      output.append(_arg1.getName());
       output.append(" ");
       output.append(_op);
       output.append(" ");
-      output.append(_arg2);
+      output.append(_arg2.getName());
       return output.toString();
   }
 

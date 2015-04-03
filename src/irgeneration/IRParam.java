@@ -2,7 +2,7 @@ package irgeneration;
 
 public class IRParam extends IRQuadruple{
 
-  public IRParam(String op, String arg1, String arg2, String result)
+  public IRParam(String op, SymbolInfo arg1,SymbolInfo arg2, SymbolInfo result)
   {
     super(op, arg1, arg2, result);
   }
@@ -11,7 +11,7 @@ public class IRParam extends IRQuadruple{
   {
       StringBuilder output = new StringBuilder(_op);
       output.append(" ");
-      output.append(_arg1);
+      output.append(_arg1.getName());
       return output.toString();
   }
 
