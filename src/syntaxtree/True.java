@@ -20,7 +20,7 @@ public class True extends Exp {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
+  public SymbolInfo accept(IRGenVisitor v) {
     return v.visit(this);
   }
 }
