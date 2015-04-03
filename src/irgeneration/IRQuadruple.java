@@ -31,4 +31,19 @@ public class IRQuadruple {
     return "";
   }
 
+  public SymbolInfo getArg1()
+  {
+    return _arg1;
+  }
+
+  public SymbolInfo getArg2()
+  {
+    return _arg2;
+  }
+
+  public SymbolInfo getResult()
+  {
+    return _result;
+  }
+
 }

@@ -14,7 +14,9 @@ public class IRCall extends IRQuadruple{
 
   public String toString()
   {
-      StringBuilder output = new StringBuilder(_result.getName());
+      StringBuilder output = new StringBuilder();
+      if(_result != null)
+        output.append(_result.getName());
       output.append(" := ");
       output.append(_op);
       output.append(" ");

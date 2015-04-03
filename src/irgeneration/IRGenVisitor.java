@@ -41,7 +41,7 @@ public class IRGenVisitor {
     StringBuilder label = new StringBuilder("_");
     label.append(_symbolTable.getCurrentClass().getName());
     label.append("_");
-    label.append(currMethod);
+    label.append(currMethod.getName());
     for(Type t : currMethod.getFormalTypes())
     {
       label.append("_");
@@ -86,6 +86,9 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(MainClass n)
   {
+
+    IRLabel mainLabel = new IRLabel("_main");
+    _irList.add(mainLabel);
     _symbolTable.enterClass(n.i1.s);
     n.s.accept(this);
     _symbolTable.exitClass();
@@ -95,6 +98,10 @@ public class IRGenVisitor {
   public SymbolInfo visit(ClassDeclSimple n)
   {
     _symbolTable.enterClass(n.i.s);  // enter the class scope
+
+    // add implicit 'this'
+    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
+    _symbolTable.addVariable(thisLocal);
 
     for(int i = 0; i < n.ml.size(); i++)  // process all methods
       n.ml.elementAt(i).accept(this);
@@ -106,6 +113,10 @@ public class IRGenVisitor {
   public SymbolInfo visit(ClassDeclExtends n)
   {
     _symbolTable.enterClass(n.i.s);  // enter the class scope
+
+    // add implicit 'this'
+    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
+    _symbolTable.addVariable(thisLocal);
 
     for(int i = 0; i < n.ml.size(); i++)
       n.ml.elementAt(i).accept(this);
@@ -224,7 +235,7 @@ public class IRGenVisitor {
     _irList.add(quad);
 
     MethodSymbol arg = new MethodSymbol("System.out.println", null);  // TODO: this should be a method that is already in the symbol table
-    SymbolInfo result = getNextTemp(null);
+    SymbolInfo result = null;
     IRCall quadCall = new IRCall(arg, 1, result);
     _irList.add(quadCall);
 
@@ -332,8 +343,8 @@ public class IRGenVisitor {
 
     // create params
     /// IMPLICIT THIS ///
-    SymbolInfo arg1 = n.e.accept(this); // get the class to pass in as implicit "this"
-    IRParam quad = new IRParam(arg1);
+    VariableSymbol callClass = (VariableSymbol)n.e.accept(this); // get the class to pass in as implicit "this"
+    IRParam quad = new IRParam(callClass);
     param_list.add(quad);
 
     // this loop will ensure that all expressions are evaluated
@@ -351,7 +362,9 @@ public class IRGenVisitor {
       _irList.add(ir);
     }
 
-    MethodSymbol name = (MethodSymbol)n.i.accept(this);
+    IdentifierType classNameType = (IdentifierType)(callClass.getType());
+    MethodSymbol name = _symbolTable.getClass(classNameType.s).getMethod(n.i.s);
+
     SymbolInfo result = getNextTemp(null);
     int nParams = n.el.size() + 1;  // add one for implicit 'this'
     IRCall quadCall = new IRCall(name, nParams, result);
@@ -398,7 +411,7 @@ public class IRGenVisitor {
   public SymbolInfo visit(NewObject n)
   {
     SymbolInfo type = n.i.accept(this);
-    SymbolInfo result = getNextTemp(null);
+    SymbolInfo result = getNextTemp(new IdentifierType(n.i.s));
     IRNewObject quad = new IRNewObject(type, result);
     _irList.add(quad);
     return result;
@@ -416,6 +429,8 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(Identifier n)
   {
+    // TODO: what if the symbol is not in the current scope?
+    // for example, a method call to an instance of another class
     return _symbolTable.getSymbol(n.s);
   }
 
