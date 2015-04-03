@@ -2,9 +2,12 @@ package irgeneration;
 
 public class IRNewArray extends IRQuadruple{
 
-  public IRNewArray(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  private String _type;
+
+  public IRNewArray(SymbolInfo arg2, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super("new", null, arg2, result);
+    _type = "int";
   }
 
   public String toString()
@@ -13,7 +16,7 @@ public class IRNewArray extends IRQuadruple{
       output.append(" := ");
       output.append(_op);
       output.append(" ");
-      output.append(_arg1.getName());
+      output.append(_type);
       output.append(", ");
       output.append(_arg2.getName());
       return output.toString();

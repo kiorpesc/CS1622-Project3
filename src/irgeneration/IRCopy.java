@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRCopy extends IRQuadruple{
 
-  public IRCopy(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRCopy(SymbolInfo arg1, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super(null, arg1, null, result);
   }
 
   public String toString()

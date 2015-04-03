@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRNewObject extends IRQuadruple{
 
-  public IRNewObject(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRNewObject(SymbolInfo arg1, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super("new", arg1, null, result);
   }
 
   public String toString()

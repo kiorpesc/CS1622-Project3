@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRReturn extends IRQuadruple{
 
-  public IRReturn(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRReturn(SymbolInfo arg1)
   {
-    super(op, arg1, arg2, result);
+    super("return", arg1, null, null);
   }
 
   public String toString()

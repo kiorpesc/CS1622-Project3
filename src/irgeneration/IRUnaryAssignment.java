@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRUnaryAssignment extends IRQuadruple{
 
-  public IRUnaryAssignment(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRUnaryAssignment(String op, SymbolInfo arg1, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super(op, arg1, null, result);
   }
 
   public String toString()

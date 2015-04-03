@@ -2,9 +2,14 @@ package irgeneration;
 
 public class IRCondJump extends IRQuadruple{
 
-  public IRCondJump(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  private String _ifFalse;
+  private String _label;
+
+  public IRCondJump(SymbolInfo arg1, String label)
   {
-    super(op, arg1, arg2, result);
+    super("goto", arg1, null, null);
+    _ifFalse = "iffalse";
+    _label = label;
   }
 
   public String toString()

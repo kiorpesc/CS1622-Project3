@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRParam extends IRQuadruple{
 
-  public IRParam(String op, SymbolInfo arg1,SymbolInfo arg2, SymbolInfo result)
+  public IRParam(SymbolInfo arg1)
   {
-    super(op, arg1, arg2, result);
+    super("param", arg1, null, null);
   }
 
   public String toString()

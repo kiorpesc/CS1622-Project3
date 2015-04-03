@@ -2,9 +2,12 @@ package irgeneration;
 
 public class IRUncondJump extends IRQuadruple{
 
-  public IRUncondJump(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  private String _label;
+
+  public IRUncondJump(String label)
   {
-    super(op, arg1, arg2, result);
+    super("goto", null, null, null);
+    _label = label;
   }
 
   public String toString()
@@ -12,7 +15,7 @@ public class IRUncondJump extends IRQuadruple{
       StringBuilder output = new StringBuilder();
       output.append(_op);
       output.append(" ");
-      output.append(_arg1.getName());
+      output.append(label);
       return output.toString();
   }
 

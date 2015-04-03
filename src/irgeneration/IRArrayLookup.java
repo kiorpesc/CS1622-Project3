@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRArrayLookup extends IRQuadruple{
 
-  public IRArrayLookup(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRArrayLookup(SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super(null, arg1, arg2, result);
   }
 
   public String toString()

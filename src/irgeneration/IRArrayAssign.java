@@ -2,9 +2,9 @@ package irgeneration;
 
 public class IRArrayAssign extends IRQuadruple{
 
-  public IRArrayAssign(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  public IRArrayAssign(SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super(null, arg1, arg2, result);
   }
 
   public String toString()

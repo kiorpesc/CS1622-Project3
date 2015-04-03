@@ -2,9 +2,12 @@ package irgeneration;
 
 public class IRCall extends IRQuadruple{
 
-  public IRCall(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
+  private int _numParams;
+
+  public IRCall(SymbolInfo arg1, int numParams, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super("call", arg1, null, result);
+    _numParams = numParams;
   }
 
   public String toString()
@@ -15,7 +18,7 @@ public class IRCall extends IRQuadruple{
       output.append(" ");
       output.append(_arg1.getName());
       output.append(" ");
-      output.append(_arg2.getName());
+      output.append(_numParams);
       return output.toString();
   }
 
