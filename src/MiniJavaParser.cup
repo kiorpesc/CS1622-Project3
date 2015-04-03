@@ -80,7 +80,8 @@ class_decl ::=
         {: RESULT = new ClassDeclSimple(id, vars, methods, id.getLine(), id.getColumn()); :}
     |   CLASS identifier:id EXTENDS identifier:parent LEFT_BRACE var_decl_list:vars method_decl_list:methods RIGHT_BRACE
         {: RESULT = new ClassDeclExtends(id, parent, vars, methods, id.getLine(), id.getColumn()); :}
-    |   error RIGHT_BRACE
+    |   error:e RIGHT_BRACE
+        {: RESULT = new ErrorClassDecl(eleft, eright); :}
     ;
 
 var_decl_list ::=
@@ -96,7 +97,8 @@ var_decl_list ::=
 var_decl ::=
         type:t identifier:id SEMICOLON
         {: RESULT = new VarDecl(t, id, t.getLine(), t.getColumn()); :}
-    |   type:t error SEMICOLON
+    |   type:t error:e SEMICOLON
+        {: RESULT = new ErrorVarDecl(tleft, tright); :}
     ;
 
 method_decl_list ::=
@@ -115,7 +117,8 @@ method_decl ::=
     |   PUBLIC type:ret identifier:id LEFT_PAREN error RIGHT_PAREN LEFT_BRACE var_decl_list:vars statement_list:sl RETURN expression:e SEMICOLON RIGHT_BRACE
         {: RESULT = new MethodDecl(ret, id, null, vars, sl, e, ret.getLine(), ret.getColumn()); :}
     |
-        error RIGHT_BRACE
+        error:e RIGHT_BRACE
+        {: RESULT = new ErrorMethodDecl(eleft, eright); :}
     ;
 
 formal_list ::=
@@ -153,11 +156,8 @@ statement_list ::=
         statement:s statement_list:rest
         {:  
             rest.addFront(s);
-            if (s != null)
-            {
-                rest.setLine(s.getLine());
-                rest.setColumn(s.getColumn());
-            }
+            rest.setLine(s.getLine());
+            rest.setColumn(s.getColumn());
             RESULT = rest; 
         :}
     |
@@ -177,7 +177,8 @@ statement ::=
         {: RESULT = new Assign(id, e, idleft, idright); :}
     |   identifier:id LEFT_BRACKET expression:sub RIGHT_BRACKET ASSIGNMENT expression:rhs SEMICOLON
         {: RESULT = new ArrayAssign(id, sub, rhs, idleft, idright); :}
-    |   error SEMICOLON
+    |   error:e SEMICOLON
+        {: RESULT = new ErrorStatement(eleft, eright); :}
     ;
 
 expression ::=
