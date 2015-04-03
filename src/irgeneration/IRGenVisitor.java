@@ -17,6 +17,11 @@ public class IRGenVisitor {
     _tempCount = 0;
   }
 
+  private String getNextTemp()
+  {
+    return "_$t" + _tempCount++;
+  }
+
   public String visit(Program n)
   {
     n.m.accept(this);
@@ -132,7 +137,7 @@ public class IRGenVisitor {
     op = "call";
     arg1 = "System.out.println";
     arg2 = "1";  // only takes one param
-    result = "t"+_tempCount++;
+    result = getNextTemp();
     IRCall quadCall = new IRCall(op, arg1, arg2, result);
     _irList.add(quadCall);
 
@@ -168,7 +173,7 @@ public class IRGenVisitor {
     String op = "&&";
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount++;
+    String result = getNextTemp();
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -179,7 +184,7 @@ public class IRGenVisitor {
     String op = "<";
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount++;
+    String result = getNextTemp();
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -189,8 +194,7 @@ public class IRGenVisitor {
   {
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     String op = "+";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -201,8 +205,7 @@ public class IRGenVisitor {
   {
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     String op = "-";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -213,8 +216,7 @@ public class IRGenVisitor {
   {
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     String op = "*";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -225,8 +227,7 @@ public class IRGenVisitor {
   {
     String arg1 = n.e1.accept(this);
     String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     String op = "";
     IRArrayLookup quad = new IRArrayLookup(op, arg1, arg2, result);
     _irList.add(quad);
@@ -238,8 +239,7 @@ public class IRGenVisitor {
     String op = "length";
     String arg1 = n.e.accept(this);
     String arg2 = "";
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     IRArrayLength quad = new IRArrayLength(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -276,7 +276,7 @@ public class IRGenVisitor {
     op = "call";
     //arg1 = n.e.accept(this);
     arg1 = n.i.accept(this);
-    result = "t"+_tempCount++;
+    result = getNextTemp();
     arg2 = ""+(n.el.size() + 1);  // add one for implicit 'this'
     IRCall quadCall = new IRCall(op, arg1, arg2, result);
     _irList.add(quadCall);
@@ -313,8 +313,7 @@ public class IRGenVisitor {
     String op = "new";
     String arg1 = "int";
     String arg2 = n.e.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     IRNewArray quad = new IRNewArray(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -325,8 +324,7 @@ public class IRGenVisitor {
     String op = "new";
     String arg1 = n.i.accept(this);
     String arg2 = null;
-    String result = "t"+_tempCount;
-    _tempCount++;
+    String result = getNextTemp();
     IRNewObject quad = new IRNewObject(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -337,7 +335,7 @@ public class IRGenVisitor {
     String op = "!";
     String arg1 = n.e.accept(this);
     String arg2 = null;
-    String result = "t"+_tempCount++;
+    String result = getNextTemp();
     IRUnaryAssignment quad = new IRUnaryAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
