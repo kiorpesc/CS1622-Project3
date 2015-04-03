@@ -32,11 +32,7 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         ClassDeclList list = n.cl;
 
         for (int i = 0; i < list.size(); ++i)
-        {
-            ClassDecl next = list.elementAt(i);
-            if (next != null)
-                next.accept(this);
-        }
+            list.elementAt(i).accept(this);
     }
 
     public void visit(MainClass n)
@@ -66,11 +62,7 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         if (n.vl != null)
         {
             for (int i = 0; i < n.vl.size(); ++i)
-            {
-                VarDecl next = n.vl.elementAt(i);
-                if (next != null)
-                    next.accept(this);
-            }
+                n.vl.elementAt(i).accept(this);
         }
 
         // visit method declarations
@@ -91,20 +83,12 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         if (n.vl != null)
         {
             for (int i = 0; i < n.vl.size(); ++i)
-            {
-                VarDecl next = n.vl.elementAt(i);
-                if (next != null)
-                    next.accept(this);
-            }
+                n.vl.elementAt(i).accept(this);
         }
 
         // visit method declarations
         for (int i = 0; i < n.ml.size(); ++i)
-        {
-            MethodDecl next = n.ml.elementAt(i);
-            if (next != null)                
-                next.accept(this);
-        }
+            n.ml.elementAt(i).accept(this);
 
         _symbolTable.exitClass();
     }

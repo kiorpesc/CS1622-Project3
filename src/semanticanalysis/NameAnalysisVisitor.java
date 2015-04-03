@@ -28,29 +28,36 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 
         ClassDeclList list = n.cl;
         for (int i = 0; i < list.size(); ++i)
-        {
-            ClassDecl next = list.elementAt(i);
-            if (next != null)
-                next.accept(this);
-        }
+            list.elementAt(i).accept(this);
     }
     public void visit(MainClass n)
     {
         String name = n.i1.s;
+        if (!_symbolTable.hasClass(name))
+            return;
 
         _symbolTable.enterClass(name);
-        _symbolTable.enterMethod("main");
-
-        if (n.s != null)
+        try
+        {
+            _symbolTable.enterMethod("main");
             n.s.accept(this);
+        }
+        catch (NoSuchScopeException e)
+        {
+            _symbolTable.exitClass();
+            return;
+        }
 
         _symbolTable.exitMethod();
         _symbolTable.exitClass();
+
 
     }
     public void visit(ClassDeclSimple n)
     {
         String name = n.i.s;
+        if (!_symbolTable.hasClass(name))
+            return;
 
         _symbolTable.enterClass(name);
         
@@ -58,11 +65,7 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
         if (n.vl != null)
         {
             for (int i = 0; i < n.vl.size(); ++i)
-            {
-                VarDecl next = n.vl.elementAt(i);
-                if (next != null)
-                    next.accept(this);
-            }
+                n.vl.elementAt(i).accept(this);
         }
 
         // visit methods
@@ -74,6 +77,8 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
     public void visit(ClassDeclExtends n)
     {
         String name = n.i.s;
+        if (!_symbolTable.hasClass(name))
+            return;
 
         _symbolTable.enterClass(name);
 
@@ -81,20 +86,12 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
         if (n.vl != null)
         {
             for (int i = 0; i < n.vl.size(); ++i)
-            {
-                VarDecl next = n.vl.elementAt(i);
-                if (next != null)
-                    next.accept(this);
-            }
+                n.vl.elementAt(i).accept(this);
         }
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
-        {
-            MethodDecl next = n.ml.elementAt(i);
-            if (next != null)                
-                next.accept(this);
-        }
+            n.ml.elementAt(i).accept(this);
 
         _symbolTable.exitClass();
     }
@@ -106,7 +103,14 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
     {
         String name = n.i.s;
 
-        _symbolTable.enterMethod(name);
+        try 
+        {
+            _symbolTable.enterMethod(name);
+        }
+        catch (NoSuchScopeException e)
+        {
+            return;
+        }
         
         // check formals
         if (n.fl != null)
@@ -121,11 +125,7 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 
         // visit statements
         for (int i = 0; i < n.sl.size(); ++i)
-        {
-            Statement next = n.sl.elementAt(i);
-            if (next != null)
-                next.accept(this);
-        }
+            n.sl.elementAt(i).accept(this);
 
         // visit return expression
         n.e.accept(this);
@@ -155,16 +155,13 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
     {
         n.e.accept(this);
 
-        if (n.s1 != null)
-            n.s1.accept(this);
-        if (n.s2 != null)
-            n.s2.accept(this);
+        n.s1.accept(this);
+        n.s2.accept(this);
     }
     public void visit(While n)
     {
         n.e.accept(this);
-        if (n.s != null)
-            n.s.accept(this);
+        n.s.accept(this);
     }
     public void visit(Print n)
     {

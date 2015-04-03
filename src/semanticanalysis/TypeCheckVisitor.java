@@ -15,6 +15,17 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         _symbolTable = symbolTable;
     }
 
+    private void checkInvalidRvalue(Exp rhs)
+    {
+        if (rhs instanceof IdentifierExp)
+        {
+            String name = ((IdentifierExp)rhs).s;
+            SymbolInfo symbol = _symbolTable.getSymbol(name);
+            if (symbol != null && !symbol.isRValue())                        
+                addError("Invalid r-value: " + symbol.getName() + " is a " + symbol.getSymbolType(), rhs.getLine(), rhs.getColumn());
+        }
+    }
+
     private boolean areTypesCompatible(Type lhs, Type rhs)
     {
         if (lhs instanceof IdentifierType && rhs instanceof IdentifierType)
@@ -74,17 +85,16 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
             return null;
 
         _symbolTable.enterClass(n.i1.s);
-
-        try 
-        { 
+        try
+        {
             _symbolTable.enterMethod("main");
+            n.s.accept(this);
         }
         catch (NoSuchScopeException e)
         {
+            _symbolTable.exitClass();
             return null;
         }
-
-        n.s.accept(this);
 
         _symbolTable.exitMethod();
         _symbolTable.exitClass();
@@ -99,8 +109,12 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 
         _symbolTable.enterClass(n.i.s);
    
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        // visit VarDecls
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+                n.vl.elementAt(i).accept(this);
+        }
 
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
@@ -116,8 +130,12 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 
         _symbolTable.enterClass(n.i.s);
 
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        // visit VarDecls
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+                n.vl.elementAt(i).accept(this);
+        }
 
         for (int i = 0; i < n.ml.size(); ++i)
             n.ml.elementAt(i).accept(this);
@@ -186,6 +204,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 
         n.s1.accept(this);
         n.s2.accept(this);
+
         return null;
     }
     public Type visit(While n)
@@ -210,7 +229,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         SymbolInfo symbol = _symbolTable.getSymbol(n.i.s);
 
         // Check for validity of lvalue
-        if (!symbol.isLValue())
+        if (symbol != null && !symbol.isLValue())
         {
             addError("Invalid l-value, " + symbol.getName() + " is a " + symbol.getSymbolType(), n.getLine(), n.getColumn());
         }
@@ -227,8 +246,11 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
             if (!areTypesCompatible(variableType, expType))
                 addError("Type mismatch during assignment", n.getLine(), n.getColumn());
         }
+        checkInvalidRvalue(n.e);
+
         return null;
     }
+
     public Type visit(ArrayAssign n)
     {
         // We should check this, but the project prompt doesn't say anything aout it.
@@ -239,6 +261,8 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         // Arrays are only integers
         if (!(rhsType instanceof IntegerType))
             addError("Type mismatch during assignment", n.getLine(), n.getColumn());
+
+        checkInvalidRvalue(n.e2);
 
         return null;
     }
