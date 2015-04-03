@@ -28,7 +28,11 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 
         ClassDeclList list = n.cl;
         for (int i = 0; i < list.size(); ++i)
-            list.elementAt(i).accept(this);
+        {
+            ClassDecl next = list.elementAt(i);
+            if (next != null)
+                next.accept(this);
+        }
     }
     public void visit(MainClass n)
     {
@@ -36,7 +40,10 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 
         _symbolTable.enterClass(name);
         _symbolTable.enterMethod("main");
-        n.s.accept(this);
+
+        if (n.s != null)
+            n.s.accept(this);
+
         _symbolTable.exitMethod();
         _symbolTable.exitClass();
 
@@ -48,8 +55,15 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
         _symbolTable.enterClass(name);
         
         // visit VarDecls
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+            {
+                VarDecl next = n.vl.elementAt(i);
+                if (next != null)
+                    next.accept(this);
+            }
+        }
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
@@ -64,12 +78,23 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
         _symbolTable.enterClass(name);
 
         // visit VarDecls
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+            {
+                VarDecl next = n.vl.elementAt(i);
+                if (next != null)
+                    next.accept(this);
+            }
+        }
 
         // visit methods
         for (int i = 0; i < n.ml.size(); ++i)
-            n.ml.elementAt(i).accept(this);
+        {
+            MethodDecl next = n.ml.elementAt(i);
+            if (next != null)                
+                next.accept(this);
+        }
 
         _symbolTable.exitClass();
     }
@@ -84,8 +109,11 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
         _symbolTable.enterMethod(name);
         
         // check formals
-        for (int i = 0; i < n.fl.size(); ++i)
-            n.fl.elementAt(i).accept(this);
+        if (n.fl != null)
+        {
+            for (int i = 0; i < n.fl.size(); ++i)
+                n.fl.elementAt(i).accept(this);
+        }
 
         // check vardecls
         for (int i = 0; i < n.vl.size(); ++i)
@@ -93,7 +121,11 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
 
         // visit statements
         for (int i = 0; i < n.sl.size(); ++i)
-            n.sl.elementAt(i).accept(this);
+        {
+            Statement next = n.sl.elementAt(i);
+            if (next != null)
+                next.accept(this);
+        }
 
         // visit return expression
         n.e.accept(this);
@@ -122,13 +154,17 @@ public class NameAnalysisVisitor extends ErrorChecker implements Visitor
     public void visit(If n)
     {
         n.e.accept(this);
-        n.s1.accept(this);
-        n.s2.accept(this);
+
+        if (n.s1 != null)
+            n.s1.accept(this);
+        if (n.s2 != null)
+            n.s2.accept(this);
     }
     public void visit(While n)
     {
         n.e.accept(this);
-        n.s.accept(this);
+        if (n.s != null)
+            n.s.accept(this);
     }
     public void visit(Print n)
     {

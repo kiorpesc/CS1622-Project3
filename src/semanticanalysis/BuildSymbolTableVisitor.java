@@ -30,8 +30,13 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         n.m.accept(this);
 
         ClassDeclList list = n.cl;
+
         for (int i = 0; i < list.size(); ++i)
-            list.elementAt(i).accept(this);
+        {
+            ClassDecl next = list.elementAt(i);
+            if (next != null)
+                next.accept(this);
+        }
     }
 
     public void visit(MainClass n)
@@ -46,7 +51,6 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         // Add binding for main method
         checkDuplicate(_symbolTable.addMethod(new MethodSymbol("main", null)), n.getLine(), n.getColumn());
 
-
         // exit the class
         _symbolTable.exitClass();
 
@@ -59,8 +63,15 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         _symbolTable.enterClass(name);
 
         // visit variable declarations
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+            {
+                VarDecl next = n.vl.elementAt(i);
+                if (next != null)
+                    next.accept(this);
+            }
+        }
 
         // visit method declarations
         for (int i = 0; i < n.ml.size(); ++i)
@@ -77,14 +88,24 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         _symbolTable.enterClass(name);
 
         // visit variable declarations
-        for (int i = 0; i < n.vl.size(); ++i)
-            n.vl.elementAt(i).accept(this);
+        if (n.vl != null)
+        {
+            for (int i = 0; i < n.vl.size(); ++i)
+            {
+                VarDecl next = n.vl.elementAt(i);
+                if (next != null)
+                    next.accept(this);
+            }
+        }
 
         // visit method declarations
         for (int i = 0; i < n.ml.size(); ++i)
-            n.ml.elementAt(i).accept(this);
+        {
+            MethodDecl next = n.ml.elementAt(i);
+            if (next != null)                
+                next.accept(this);
+        }
 
-        // Add Symbol
         _symbolTable.exitClass();
     }
     public void visit(VarDecl n)
@@ -102,9 +123,11 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
         // TODO: do we need to add symbol for 'this'?
 
         // visit formal declarations
-        for (int i = 0; i < n.fl.size(); ++i)
-            n.fl.elementAt(i).accept(this);
-
+        if (n.fl != null)
+        {
+            for (int i = 0; i < n.fl.size(); ++i)
+                n.fl.elementAt(i).accept(this);
+        }
         // visit local declarations
         for (int i = 0; i < n.vl.size(); ++i)
             n.vl.elementAt(i).accept(this);

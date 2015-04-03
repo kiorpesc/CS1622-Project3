@@ -70,20 +70,35 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
     }
     public Type visit(MainClass n)
     {
+        if (!_symbolTable.hasClass(n.i1.s))
+            return null;
+
         _symbolTable.enterClass(n.i1.s);
-        _symbolTable.enterMethod("main");
+
+        try 
+        { 
+            _symbolTable.enterMethod("main");
+        }
+        catch (NoSuchScopeException e)
+        {
+            return null;
+        }
 
         n.s.accept(this);
 
         _symbolTable.exitMethod();
         _symbolTable.exitClass();
+    
 
         return null;
     }
     public Type visit(ClassDeclSimple n)
     {
-        _symbolTable.enterClass(n.i.s);
+        if (!_symbolTable.hasClass(n.i.s))
+            return null;
 
+        _symbolTable.enterClass(n.i.s);
+   
         for (int i = 0; i < n.vl.size(); ++i)
             n.vl.elementAt(i).accept(this);
 
@@ -96,6 +111,9 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
     }
     public Type visit(ClassDeclExtends n)
     {
+        if (!_symbolTable.hasClass(n.i.s))
+            return null;
+
         _symbolTable.enterClass(n.i.s);
 
         for (int i = 0; i < n.vl.size(); ++i)
@@ -115,8 +133,15 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
     }
     public Type visit(MethodDecl n)
     {
-        _symbolTable.enterMethod(n.i.s);
-
+        try
+        {
+            _symbolTable.enterMethod(n.i.s);
+        }
+        catch (NoSuchScopeException e)
+        {
+            return null;
+        }
+        
         // check StatementList and Expression
         for (int i = 0; i < n.sl.size(); ++i)
             n.sl.elementAt(i).accept(this);
