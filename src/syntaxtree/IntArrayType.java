@@ -23,7 +23,4 @@ public class IntArrayType extends Type {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
-    return v.visit(this);
-  }
 }

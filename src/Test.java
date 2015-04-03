@@ -49,7 +49,7 @@ public class Test
 
         System.out.println("======== Intermediate Representation ========");
 
-        IRGenVisitor irGenerator = new IRGenVisitor();
+        IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
         irGenerator.printIRList();
     }

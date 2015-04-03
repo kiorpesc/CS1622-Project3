@@ -12,5 +12,5 @@ public abstract class Statement extends ASTNode{
 
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
-  public abstract String accept(IRGenVisitor v);
+  public abstract void accept(IRGenVisitor v);
 }

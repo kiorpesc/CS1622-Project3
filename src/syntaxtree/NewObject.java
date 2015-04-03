@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class NewObject extends Exp {
   public Identifier i;
@@ -24,7 +25,7 @@ public class NewObject extends Exp {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
+  public SymbolInfo accept(IRGenVisitor v) {
     return v.visit(this);
   }
 }

@@ -1,21 +1,26 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRNewArray extends IRQuadruple{
 
-  public IRNewArray(String op, String arg1, String arg2, String result)
+  private String _type;
+
+  public IRNewArray(SymbolInfo arg2, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super("new", null, arg2, result);
+    _type = "int";
   }
 
   public String toString()
   {
-      StringBuilder output = new StringBuilder(_result.toString());
+      StringBuilder output = new StringBuilder(_result.getName());
       output.append(" := ");
       output.append(_op);
       output.append(" ");
-      output.append(_arg1);
+      output.append(_type);
       output.append(", ");
-      output.append(_arg2);
+      output.append(_arg2.getName());
       return output.toString();
   }
 

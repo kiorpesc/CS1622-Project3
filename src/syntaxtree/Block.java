@@ -24,7 +24,7 @@ public class Block extends Statement {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
-    return v.visit(this);
+  public void accept(IRGenVisitor v) {
+    v.visit(this);
   }
 }

@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class LessThan extends Exp {
   public Exp e1,e2;
@@ -24,7 +25,7 @@ public class LessThan extends Exp {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
+  public SymbolInfo accept(IRGenVisitor v) {
     return v.visit(this);
   }
 }

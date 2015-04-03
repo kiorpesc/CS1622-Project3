@@ -10,14 +10,72 @@ public class IRGenVisitor {
 
   private ArrayList<IRQuadruple> _irList;
   private int _tempCount;
+  private SymbolTable _symbolTable;
+  private int _ifCount;
+  private int _loopCount;
+  private int _loopEndCount;
 
-  public IRGenVisitor()
+  public IRGenVisitor(SymbolTable symbols)
   {
     _irList = new ArrayList<IRQuadruple>();
     _tempCount = 0;
+    _ifCount = 0;
+    _loopCount = 0;
+    _loopEndCount = 0;
+    _symbolTable = symbols;
   }
 
-  public String visit(Program n)
+  //// UTILITY FUNCTIONS /////
+
+  private VariableSymbol getNextTemp(Type type)
+  {
+    VariableSymbol nextTemp = new VariableSymbol("_$t" + _tempCount++, type);
+    _symbolTable.addVariable(nextTemp);
+    return nextTemp;
+  }
+
+  // generate a unique method label
+  public String generateMethodLabel()
+  {
+    MethodSymbol currMethod = _symbolTable.getCurrentMethod();
+    StringBuilder label = new StringBuilder("_");
+    label.append(_symbolTable.getCurrentClass().getName());
+    label.append("_");
+    label.append(currMethod.getName());
+    for(Type t : currMethod.getFormalTypes())
+    {
+      label.append("_");
+      label.append(t.toString());
+    }
+
+    return label.toString();
+  }
+
+  // generate a unique else label
+  public String generateElseLabel()
+  {
+    String result = generateMethodLabel() + "_ELSE" + _ifCount++;
+    return result;
+  }
+
+  // generate a unique loop label
+  public String generateLoopLabel()
+  {
+    String result = generateMethodLabel() + "_LOOP" + _loopCount++;
+    return result;
+  }
+
+  // generate a unique loop end label
+  public String generateLoopEndLabel()
+  {
+    String result = generateMethodLabel() + "_OUT" + _loopEndCount++;
+    return result;
+  }
+
+  //////// END UTILITY FUNCTIONS ///////////////////
+
+
+  public SymbolInfo visit(Program n)
   {
     n.m.accept(this);
     for ( int i = 0; i < n.cl.size(); i++ ) {
@@ -26,54 +84,86 @@ public class IRGenVisitor {
     return null;
   }
 
-  public String visit(MainClass n)
+  public SymbolInfo visit(MainClass n)
   {
-    return n.s.accept(this);
-  }
 
-  public String visit(ClassDeclSimple n)
-  {
-    for(int i = 0; i < n.ml.size(); i++)
-      n.ml.elementAt(i).accept(this);
+    IRLabel mainLabel = new IRLabel("_main");
+    _irList.add(mainLabel);
+    _symbolTable.enterClass(n.i1.s);
+    n.s.accept(this);
+    _symbolTable.exitClass();
     return null;
   }
 
-  public String visit(ClassDeclExtends n)
+  public SymbolInfo visit(ClassDeclSimple n)
   {
-    for(int i = 0; i < n.ml.size(); i++)
+    _symbolTable.enterClass(n.i.s);  // enter the class scope
+
+    // add implicit 'this'
+    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
+    _symbolTable.addVariable(thisLocal);
+
+    for(int i = 0; i < n.ml.size(); i++)  // process all methods
       n.ml.elementAt(i).accept(this);
+
+    _symbolTable.exitClass(); // exit the class scope
     return null;
   }
 
-  public String visit(VarDecl n){return null;}
-
-  public String visit(MethodDecl n)
+  public SymbolInfo visit(ClassDeclExtends n)
   {
-    // TODO: create a label for the method
+    _symbolTable.enterClass(n.i.s);  // enter the class scope
+
+    // add implicit 'this'
+    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
+    _symbolTable.addVariable(thisLocal);
+
+    for(int i = 0; i < n.ml.size(); i++)
+      n.ml.elementAt(i).accept(this);
+
+    _symbolTable.exitClass();
+    return null;
+  }
+
+  //public String visit(VarDecl n){return null;}
+
+  // visit methods and traverse their statements
+  public SymbolInfo visit(MethodDecl n)
+  {
+    _symbolTable.enterMethod(n.i.s);
+
+    _ifCount = 0; // new method means no ifs encountered yet
+    _loopCount = 0; // same for loops
+    _loopEndCount = 0; // and their ends
+
+
+    // create a label for the method
+    IRLabel methodLabel = new IRLabel(generateMethodLabel());
+    _irList.add(methodLabel);
+
+    // process each statement in the statement_list
     for(int i = 0; i < n.sl.size(); i++)
     {
       n.sl.elementAt(i).accept(this);
     }
 
-    // create return statement IR
-    String op = "return";
-    String arg1 = n.e.accept(this);
-    String arg2 = null;
-    String result = null;
-    IRReturn quad = new IRReturn(op, arg1, arg2, result);
-
+    // create return statement IR for the last expression
+    SymbolInfo arg1 = n.e.accept(this);
+    IRReturn quad = new IRReturn(arg1);
     _irList.add(quad);
 
-    return arg1;
+    _symbolTable.exitMethod();
+
+    return null;
   }
 
-  public String visit(Formal n){return null;}
-  public String visit(IntArrayType n){return null;}
-  public String visit(BooleanType n){return null;}
-  public String visit(IntegerType n){return null;}
-  public String visit(IdentifierType n){return null;}
+  //public String visit(Formal n){return null;}
+  //public String visit(IntArrayType n){return null;}
+  //public String visit(BooleanType n){return null;}
+  //public String visit(IntegerType n){return null;}
+  //public String visit(IdentifierType n){return null;}
 
-  public String visit(Block n){
+  public SymbolInfo visit(Block n){
     for(int i = 0; i < n.sl.size(); i++)
     {
       n.sl.elementAt(i).accept(this);
@@ -81,181 +171,180 @@ public class IRGenVisitor {
     return null;
   }
 
-  public String visit(If n)
+  public SymbolInfo visit(If n)
   {
-    String result = "iffalse";
-    String op = "goto";
-    String arg1 = n.e.accept(this);
-    String arg2 = "ELSELABEL";
-    IRCondJump quad = new IRCondJump(op, arg1, arg2, result);
+    // create first Conditional Jump IR, add to list
+    SymbolInfo arg1 = n.e.accept(this);
+    String label = generateElseLabel();
+    IRCondJump quad = new IRCondJump(arg1, label);
     _irList.add(quad);
-    return result;
+
+    // process the statement in the if clause
+    n.s1.accept(this);
+
+    // then add else label to _irList
+    IRLabel elseLabel = new IRLabel(label);
+    _irList.add(elseLabel);
+
+    // then process the else statement
+    n.s2.accept(this);
+
+    return null;
   }
 
-  public String visit(While n)
+  public SymbolInfo visit(While n)
   {
+
+    // pregenerate loop labels
+    String loopStartLabel = generateLoopLabel();
+    String loopEndLabel = generateLoopEndLabel();
+
+    // add loop begin label before the check
+    IRLabel loopStartIR = new IRLabel(loopStartLabel);
+    _irList.add(loopStartIR);
+
+    // conditional jump from while condition
     // iffalse x goto ENDWHILE
     String op = "goto";
-    String arg2 = "ENDWHILE";
-    String arg1 = n.e.accept(this);
-    String result = "iffalse";
-    IRCondJump quad = new IRCondJump(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.e.accept(this);
+    IRCondJump quad = new IRCondJump(arg1, loopEndLabel);
     _irList.add(quad);
 
-    // statements
+    // process statements
     n.s.accept(this);
 
-    // goto BEGINWHILE
-    result = null;
-    arg1 = "BEGINWHILE";
-    arg2 = null;
-    IRUncondJump uquad = new IRUncondJump(op, arg1, arg2, result);
+    // goto LOOP START
+    IRUncondJump uquad = new IRUncondJump(loopStartLabel);
     _irList.add(uquad);
+
+    // add loop OUT label
+    IRLabel loopEndIR = new IRLabel(loopEndLabel);
+    _irList.add(loopEndIR);
 
     return null;
   }
 
   // TODO: this method - needs to be treated like a Call
-  public String visit(Print n)
+  public SymbolInfo visit(Print n)
   {
     // print only needs to take one param?
 
     // prepare param call
-
-    String arg1 = n.e.accept(this);
-    String arg2 = null;
-    String op = "param";
-    String result = null;
-    IRParam quad = new IRParam(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.e.accept(this);
+    IRParam quad = new IRParam(arg1);
     _irList.add(quad);
 
-    op = "call";
-    arg1 = "System.out.println";
-    arg2 = "1";  // only takes one param
-    result = "t"+_tempCount++;
-    IRCall quadCall = new IRCall(op, arg1, arg2, result);
+    MethodSymbol arg = new MethodSymbol("System.out.println", null);  // TODO: this should be a method that is already in the symbol table
+    SymbolInfo result = null;
+    IRCall quadCall = new IRCall(arg, 1, result);
     _irList.add(quadCall);
 
     return result;
   }
 
-  public String visit(Assign n)
+  public SymbolInfo visit(Assign n)
   {
-    String result = n.i.s;
-    String arg1 = n.e.accept(this); // generate the other lines of IR first
-    // grab the last quadruple for modification
-    String arg2 = null;
-    String op = null;
-    IRCopy quad = new IRCopy(op, arg1, arg2, result);
+    SymbolInfo result = n.i.accept(this);
+    SymbolInfo arg1 = n.e.accept(this); // generate the other lines of IR first
+
+    IRCopy quad = new IRCopy(arg1, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(ArrayAssign n)
+  public SymbolInfo visit(ArrayAssign n)
   {
     // TODO: verify how args should be ordered
-    String arg1 = n.i.accept(this);
-    String arg2 = n.e1.accept(this);
-    String op = null;
-    String result = n.e2.accept(this);
-    IRArrayAssign quad = new IRArrayAssign(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.i.accept(this);
+    SymbolInfo arg2 = n.e1.accept(this);
+    SymbolInfo result = n.e2.accept(this);
+    IRArrayAssign quad = new IRArrayAssign(arg1, arg2, result);
     _irList.add(quad);
     return null;
   }
 
-  public String visit(And n)
+  public SymbolInfo visit(And n)
   {
     String op = "&&";
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount++;
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new BooleanType());
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(LessThan n)
+  public SymbolInfo visit(LessThan n)
   {
     String op = "<";
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount++;
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new BooleanType());
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Plus n)
+  public SymbolInfo visit(Plus n)
   {
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "+";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Minus n)
+  public SymbolInfo visit(Minus n)
   {
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "-";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Times n)
+  public SymbolInfo visit(Times n)
   {
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "*";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(ArrayLookup n)
+  public SymbolInfo visit(ArrayLookup n)
   {
-    String arg1 = n.e1.accept(this);
-    String arg2 = n.e2.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
-    String op = "";
-    IRArrayLookup quad = new IRArrayLookup(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.e1.accept(this);
+    SymbolInfo arg2 = n.e2.accept(this);
+    SymbolInfo result = getNextTemp(new IntegerType());
+    IRArrayLookup quad = new IRArrayLookup(arg1, arg2, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(ArrayLength n)
+  public SymbolInfo visit(ArrayLength n)
   {
-    String op = "length";
-    String arg1 = n.e.accept(this);
-    String arg2 = "";
-    String result = "t"+_tempCount;
-    _tempCount++;
-    IRArrayLength quad = new IRArrayLength(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.e.accept(this);
+    SymbolInfo result = getNextTemp(new IntegerType());
+    IRArrayLength quad = new IRArrayLength(arg1, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Call n)
+  public SymbolInfo visit(Call n)
   {
     ArrayList<IRParam> param_list = new ArrayList<IRParam>();
 
     // create params
     /// IMPLICIT THIS ///
-    String op = "param";
-    String arg1 = n.e.accept(this); // get the class to pass in as implicit "this"
-    String arg2 = null;
-    String result = null;
-    IRParam quad = new IRParam(op, arg1, arg2, result);
+    VariableSymbol callClass = (VariableSymbol)n.e.accept(this); // get the class to pass in as implicit "this"
+    IRParam quad = new IRParam(callClass);
     param_list.add(quad);
 
     // this loop will ensure that all expressions are evaluated
@@ -263,8 +352,8 @@ public class IRGenVisitor {
     // the param statements
     for(int i = 0; i < n.el.size(); i++)
     {
-      arg1 = n.el.elementAt(i).accept(this);
-      quad = new IRParam(op, arg1, arg2, result);
+      SymbolInfo arg = n.el.elementAt(i).accept(this);
+      quad = new IRParam(arg);
       param_list.add(quad);
     }
 
@@ -273,79 +362,76 @@ public class IRGenVisitor {
       _irList.add(ir);
     }
 
-    op = "call";
-    //arg1 = n.e.accept(this);
-    arg1 = n.i.accept(this);
-    result = "t"+_tempCount++;
-    arg2 = ""+(n.el.size() + 1);  // add one for implicit 'this'
-    IRCall quadCall = new IRCall(op, arg1, arg2, result);
+    IdentifierType classNameType = (IdentifierType)(callClass.getType());
+    MethodSymbol name = _symbolTable.getClass(classNameType.s).getMethod(n.i.s);
+
+    SymbolInfo result = getNextTemp(null);
+    int nParams = n.el.size() + 1;  // add one for implicit 'this'
+    IRCall quadCall = new IRCall(name, nParams, result);
     _irList.add(quadCall);
     return result;
   }
 
-  public String visit(IntegerLiteral n)
+  public SymbolInfo visit(IntegerLiteral n)
   {
-    return "" + n.i;
+    return new ConstantSymbol(""+n.i, new IntegerType());
   }
 
-  public String visit(True n)
+  public SymbolInfo visit(True n)
   {
-      return "true";
+      return new ConstantSymbol("true", new BooleanType());
   }
 
-  public String visit(False n)
+  public SymbolInfo visit(False n)
   {
-    return "false";
+    return new ConstantSymbol("true", new BooleanType());
   }
 
-  public String visit(IdentifierExp n)
+  public SymbolInfo visit(IdentifierExp n)
   {
-    return n.s;
+    return _symbolTable.getSymbol(n.s);
   }
 
-  public String visit(This n)
+  // TODO: is "this" in the symbol table?
+  public SymbolInfo visit(This n)
   {
-    return "this";
+    return _symbolTable.getSymbol("this");
   }
 
-  public String visit(NewArray n)
+  // always an int array
+  public SymbolInfo visit(NewArray n)
   {
-    String op = "new";
-    String arg1 = "int";
-    String arg2 = n.e.accept(this);
-    String result = "t"+_tempCount;
-    _tempCount++;
-    IRNewArray quad = new IRNewArray(op, arg1, arg2, result);
+    SymbolInfo size = n.e.accept(this);
+    SymbolInfo result = getNextTemp(null);
+    IRNewArray quad = new IRNewArray(size, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(NewObject n)
+  public SymbolInfo visit(NewObject n)
   {
-    String op = "new";
-    String arg1 = n.i.accept(this);
-    String arg2 = null;
-    String result = "t"+_tempCount;
-    _tempCount++;
-    IRNewObject quad = new IRNewObject(op, arg1, arg2, result);
+    SymbolInfo type = n.i.accept(this);
+    SymbolInfo result = getNextTemp(new IdentifierType(n.i.s));
+    IRNewObject quad = new IRNewObject(type, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Not n)
+  public SymbolInfo visit(Not n)
   {
     String op = "!";
-    String arg1 = n.e.accept(this);
-    String arg2 = null;
-    String result = "t"+_tempCount++;
-    IRUnaryAssignment quad = new IRUnaryAssignment(op, arg1, arg2, result);
+    SymbolInfo arg1 = n.e.accept(this);
+    SymbolInfo result = getNextTemp(new BooleanType());
+    IRUnaryAssignment quad = new IRUnaryAssignment(op, arg1, result);
     _irList.add(quad);
     return result;
   }
 
-  public String visit(Identifier n)
+  public SymbolInfo visit(Identifier n)
   {
-    return n.s;
+    // TODO: what if the symbol is not in the current scope?
+    // for example, a method call to an instance of another class
+    return _symbolTable.getSymbol(n.s);
   }
 
   public ArrayList<IRQuadruple> getIRList()

@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public abstract class Exp extends ASTNode{
 
@@ -11,5 +12,5 @@ public abstract class Exp extends ASTNode{
 
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
-  public abstract String accept(IRGenVisitor v);
+  public abstract SymbolInfo accept(IRGenVisitor v);
 }

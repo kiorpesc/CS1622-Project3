@@ -25,7 +25,6 @@ public abstract class Type extends ASTNode{
 
   public abstract void accept(Visitor v);
   public abstract Type accept(TypeVisitor v);
-  public abstract String accept(IRGenVisitor v);
 
   public boolean equals(Object o)
   {

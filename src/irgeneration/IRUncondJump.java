@@ -1,10 +1,15 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRUncondJump extends IRQuadruple{
 
-  public IRUncondJump(String op, String arg1, String arg2, String result)
+  private String _label;
+
+  public IRUncondJump(String label)
   {
-    super(op, arg1, arg2, result);
+    super("goto", null, null, null);
+    _label = label;
   }
 
   public String toString()
@@ -12,7 +17,7 @@ public class IRUncondJump extends IRQuadruple{
       StringBuilder output = new StringBuilder();
       output.append(_op);
       output.append(" ");
-      output.append(_arg1);
+      output.append(_label);
       return output.toString();
   }
 

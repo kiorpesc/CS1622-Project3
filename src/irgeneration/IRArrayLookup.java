@@ -1,19 +1,21 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRArrayLookup extends IRQuadruple{
 
-  public IRArrayLookup(String op, String arg1, String arg2, String result)
+  public IRArrayLookup(SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
   {
-    super(op, arg1, arg2, result);
+    super(null, arg1, arg2, result);
   }
 
   public String toString()
   {
-      StringBuilder output = new StringBuilder(_result.toString());
+      StringBuilder output = new StringBuilder(_result.getName());
       output.append(" := ");
-      output.append(_arg1);
+      output.append(_arg1.getName());
       output.append("[");
-      output.append(_arg2);
+      output.append(_arg2.getName());
       output.append("]");
       return output.toString();
   }

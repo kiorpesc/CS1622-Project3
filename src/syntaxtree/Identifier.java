@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class Identifier extends ASTNode{
   public String s;
@@ -28,7 +29,7 @@ public class Identifier extends ASTNode{
     return s;
   }
 
-  public String accept(IRGenVisitor v) {
+  public SymbolInfo accept(IRGenVisitor v) {
     return v.visit(this);
   }
 }

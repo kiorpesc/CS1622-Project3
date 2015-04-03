@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class Print extends Statement {
   public Exp e;
@@ -24,7 +25,7 @@ public class Print extends Statement {
     return v.visit(this);
   }
 
-  public String accept(IRGenVisitor v) {
-    return v.visit(this);
+  public void accept(IRGenVisitor v) {
+    v.visit(this);
   }
 }
