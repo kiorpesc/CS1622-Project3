@@ -7,11 +7,11 @@ import syntaxtree.*;
 public class IRQuadruple {
 
   protected String _op;
-  protected String _arg1;
-  protected String _arg2;
-  protected String _result;
+  protected SymbolInfo _arg1;
+  protected SymbolInfo _arg2;
+  protected SymbolInfo _result;
 
-  public IRQuadruple(String op, String arg1, String arg2, String result)
+  public IRQuadruple(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
   {
     _op = op;
     _arg1 = arg1;
@@ -19,11 +19,13 @@ public class IRQuadruple {
     _result = result;
   }
 
-  public void setResult(String result)
+  // utility function to modify the result after creation
+  public void setResult(SymbolInfo result)
   {
     _result = result;
   }
 
+  // probably unnecessary
   public String toString()
   {
     return "";

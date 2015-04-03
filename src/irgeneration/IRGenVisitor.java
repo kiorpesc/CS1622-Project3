@@ -10,11 +10,13 @@ public class IRGenVisitor {
 
   private ArrayList<IRQuadruple> _irList;
   private int _tempCount;
+  private ISymbolTable _symbolTable;
 
-  public IRGenVisitor()
+  public IRGenVisitor(ISymbolTable symbols)
   {
     _irList = new ArrayList<IRQuadruple>();
     _tempCount = 0;
+    _symbolTable = symbols;
   }
 
   private String getNextTemp()
