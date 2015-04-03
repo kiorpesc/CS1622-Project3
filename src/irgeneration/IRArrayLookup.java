@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRArrayLookup extends IRQuadruple{
 
   public IRArrayLookup(SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)

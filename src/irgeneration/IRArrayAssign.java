@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRArrayAssign extends IRQuadruple{
 
   public IRArrayAssign(SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)

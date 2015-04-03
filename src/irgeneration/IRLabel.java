@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRLabel extends IRQuadruple{
 
   String _label;

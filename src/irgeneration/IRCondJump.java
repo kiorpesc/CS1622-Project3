@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRCondJump extends IRQuadruple{
 
   private String _ifFalse;

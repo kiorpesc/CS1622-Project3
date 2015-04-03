@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRUnaryAssignment extends IRQuadruple{
 
   public IRUnaryAssignment(String op, SymbolInfo arg1, SymbolInfo result)

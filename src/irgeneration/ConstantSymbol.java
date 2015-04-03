@@ -1,4 +1,8 @@
+package irgeneration;
+
 // test symbol, please ignore
+import symboltable.*;
+import syntaxtree.*;
 
 public class ConstantSymbol extends VariableSymbol
 {
@@ -6,7 +10,6 @@ public class ConstantSymbol extends VariableSymbol
   public ConstantSymbol (String name, Type type)
   {
     super(name, type);
-    _value = value;
   }
 
   public String getSymbolType()
@@ -16,7 +19,7 @@ public class ConstantSymbol extends VariableSymbol
 
   public String getValue()
   {
-    return _name;
+    return getName();
   }
 
 }

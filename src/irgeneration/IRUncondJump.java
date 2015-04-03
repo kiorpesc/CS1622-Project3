@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRUncondJump extends IRQuadruple{
 
   private String _label;
@@ -15,7 +17,7 @@ public class IRUncondJump extends IRQuadruple{
       StringBuilder output = new StringBuilder();
       output.append(_op);
       output.append(" ");
-      output.append(label);
+      output.append(_label);
       return output.toString();
   }
 

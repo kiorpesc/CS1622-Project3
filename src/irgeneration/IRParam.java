@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRParam extends IRQuadruple{
 
   public IRParam(SymbolInfo arg1)

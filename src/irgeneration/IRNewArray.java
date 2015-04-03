@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRNewArray extends IRQuadruple{
 
   private String _type;

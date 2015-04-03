@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRCopy extends IRQuadruple{
 
   public IRCopy(SymbolInfo arg1, SymbolInfo result)

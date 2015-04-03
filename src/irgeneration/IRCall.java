@@ -1,10 +1,12 @@
 package irgeneration;
 
+import symboltable.*;
+
 public class IRCall extends IRQuadruple{
 
   private int _numParams;
 
-  public IRCall(SymbolInfo arg1, int numParams, SymbolInfo result)
+  public IRCall(MethodSymbol arg1, int numParams, SymbolInfo result)
   {
     super("call", arg1, null, result);
     _numParams = numParams;

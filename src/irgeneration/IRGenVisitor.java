@@ -10,12 +10,12 @@ public class IRGenVisitor {
 
   private ArrayList<IRQuadruple> _irList;
   private int _tempCount;
-  private ISymbolTable _symbolTable;
+  private SymbolTable _symbolTable;
   private int _ifCount;
   private int _loopCount;
   private int _loopEndCount;
 
-  public IRGenVisitor(ISymbolTable symbols)
+  public IRGenVisitor(SymbolTable symbols)
   {
     _irList = new ArrayList<IRQuadruple>();
     _tempCount = 0;
@@ -37,7 +37,7 @@ public class IRGenVisitor {
   // generate a unique method label
   public String generateMethodLabel()
   {
-    SymbolInfo currMethod = _symbolTable.getCurrentMethod();
+    MethodSymbol currMethod = _symbolTable.getCurrentMethod();
     StringBuilder label = new StringBuilder("_");
     label.append(_symbolTable.getCurrentClass().getName());
     label.append("_");
@@ -86,15 +86,15 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(MainClass n)
   {
-    _symbolTable.enterClass(n.i1);
+    _symbolTable.enterClass(n.i1.s);
     n.s.accept(this);
-    _symboltable.exitClass();
+    _symbolTable.exitClass();
     return null;
   }
 
   public SymbolInfo visit(ClassDeclSimple n)
   {
-    _symbolTable.enterClass(n.i);  // enter the class scope
+    _symbolTable.enterClass(n.i.s);  // enter the class scope
 
     for(int i = 0; i < n.ml.size(); i++)  // process all methods
       n.ml.elementAt(i).accept(this);
@@ -105,7 +105,7 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(ClassDeclExtends n)
   {
-    _symbolTable.enterClass(n.i);  // enter the class scope
+    _symbolTable.enterClass(n.i.s);  // enter the class scope
 
     for(int i = 0; i < n.ml.size(); i++)
       n.ml.elementAt(i).accept(this);
@@ -119,7 +119,7 @@ public class IRGenVisitor {
   // visit methods and traverse their statements
   public SymbolInfo visit(MethodDecl n)
   {
-    _symbolTable.enterMethod(n.i);
+    _symbolTable.enterMethod(n.i.s);
 
     _ifCount = 0; // new method means no ifs encountered yet
     _loopCount = 0; // same for loops
@@ -223,9 +223,9 @@ public class IRGenVisitor {
     IRParam quad = new IRParam(arg1);
     _irList.add(quad);
 
-    arg1 = new MethodSymbol("System.out.println", new Type("void"));  // TODO: this should be a method that is already in the symbol table
-    SymbolInfo result = getNextTemp();
-    IRCall quadCall = new IRCall(arg1, 1, result);
+    MethodSymbol arg = new MethodSymbol("System.out.println", null);  // TODO: this should be a method that is already in the symbol table
+    SymbolInfo result = getNextTemp(null);
+    IRCall quadCall = new IRCall(arg, 1, result);
     _irList.add(quadCall);
 
     return result;
@@ -233,7 +233,7 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(Assign n)
   {
-    SymbolInfo result = n.i.s;
+    SymbolInfo result = n.i.accept(this);
     SymbolInfo arg1 = n.e.accept(this); // generate the other lines of IR first
 
     IRCopy quad = new IRCopy(arg1, result);
@@ -257,7 +257,7 @@ public class IRGenVisitor {
     String op = "&&";
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new BooleanType());
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -268,7 +268,7 @@ public class IRGenVisitor {
     String op = "<";
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new BooleanType());
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -278,7 +278,7 @@ public class IRGenVisitor {
   {
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "+";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -289,7 +289,7 @@ public class IRGenVisitor {
   {
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "-";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -300,7 +300,7 @@ public class IRGenVisitor {
   {
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new IntegerType());
     String op = "*";
     IRAssignment quad = new IRAssignment(op, arg1, arg2, result);
     _irList.add(quad);
@@ -311,7 +311,7 @@ public class IRGenVisitor {
   {
     SymbolInfo arg1 = n.e1.accept(this);
     SymbolInfo arg2 = n.e2.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new IntegerType());
     IRArrayLookup quad = new IRArrayLookup(arg1, arg2, result);
     _irList.add(quad);
     return result;
@@ -320,7 +320,7 @@ public class IRGenVisitor {
   public SymbolInfo visit(ArrayLength n)
   {
     SymbolInfo arg1 = n.e.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new IntegerType());
     IRArrayLength quad = new IRArrayLength(arg1, result);
     _irList.add(quad);
     return result;
@@ -341,8 +341,8 @@ public class IRGenVisitor {
     // the param statements
     for(int i = 0; i < n.el.size(); i++)
     {
-      arg1 = n.el.elementAt(i).accept(this);
-      quad = new IRParam(arg1);
+      SymbolInfo arg = n.el.elementAt(i).accept(this);
+      quad = new IRParam(arg);
       param_list.add(quad);
     }
 
@@ -351,10 +351,10 @@ public class IRGenVisitor {
       _irList.add(ir);
     }
 
-    arg1 = n.i.accept(this);
-    SymbolInfo result = getNextTemp();
+    MethodSymbol name = (MethodSymbol)n.i.accept(this);
+    SymbolInfo result = getNextTemp(null);
     int nParams = n.el.size() + 1;  // add one for implicit 'this'
-    IRCall quadCall = new IRCall(arg1, nParams, result);
+    IRCall quadCall = new IRCall(name, nParams, result);
     _irList.add(quadCall);
     return result;
   }
@@ -389,7 +389,7 @@ public class IRGenVisitor {
   public SymbolInfo visit(NewArray n)
   {
     SymbolInfo size = n.e.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(null);
     IRNewArray quad = new IRNewArray(size, result);
     _irList.add(quad);
     return result;
@@ -398,7 +398,7 @@ public class IRGenVisitor {
   public SymbolInfo visit(NewObject n)
   {
     SymbolInfo type = n.i.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(null);
     IRNewObject quad = new IRNewObject(type, result);
     _irList.add(quad);
     return result;
@@ -408,7 +408,7 @@ public class IRGenVisitor {
   {
     String op = "!";
     SymbolInfo arg1 = n.e.accept(this);
-    SymbolInfo result = getNextTemp();
+    SymbolInfo result = getNextTemp(new BooleanType());
     IRUnaryAssignment quad = new IRUnaryAssignment(op, arg1, result);
     _irList.add(quad);
     return result;

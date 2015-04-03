@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRArrayLength extends IRQuadruple{
 
   public IRArrayLength(SymbolInfo arg1, SymbolInfo result)

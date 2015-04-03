@@ -1,5 +1,7 @@
 package irgeneration;
 
+import symboltable.SymbolInfo;
+
 public class IRAssignment extends IRQuadruple{
 
   public IRAssignment(String op, SymbolInfo arg1, SymbolInfo arg2, SymbolInfo result)
