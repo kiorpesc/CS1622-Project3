@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.*;
 
 import irgeneration.*;
 import semanticanalysis.*;
@@ -14,7 +15,7 @@ public class Test
         {
             System.err.println("usage: java NameAnalysisTest <input-file>");
             System.exit(1);
-        }
+        }        
 
         MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
 
@@ -28,13 +29,9 @@ public class Test
         System.out.println("======== Symbol Table ========");
         System.out.println(symbolTable);
 
-
         System.out.println("======== Symbol Table Errors ========");
         for (String error : symbolTableBuilder.getErrors())
             System.out.println(error);
-
-        if (!symbolTableBuilder.getErrors().isEmpty())
-            System.exit(1);
 
         System.out.println("======== Name Errors ========");
 
@@ -42,9 +39,6 @@ public class Test
         nameAnalysis.visit(program);
         for (String error : nameAnalysis.getErrors())
             System.out.println(error);
-
-        if (!nameAnalysis.getErrors().isEmpty())
-            System.exit(1);
 
         System.out.println("======== Type Errors ========");
 
