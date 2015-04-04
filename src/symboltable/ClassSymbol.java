@@ -3,7 +3,7 @@ package symboltable;
 import java.util.*;
 
 // Holds information relevant for a ClassSymbol
-public class ClassSymbol extends SymbolInfo 
+public class ClassSymbol extends SymbolInfo
 {
     private Map<String, MethodSymbol> _methods = new HashMap<String, MethodSymbol>();
     private Map<String, VariableSymbol> _variables = new HashMap<String, VariableSymbol>();
@@ -91,10 +91,12 @@ public class ClassSymbol extends SymbolInfo
         for (VariableSymbol variable : _variables.values())
             result.append(variable.toString());
 
+        result.append("\n");
+
         for (MethodSymbol method : _methods.values())
             result.append(method.toString());
 
         result.append("}\n");
-        return result.toString();        
+        return result.toString();
     }
 }

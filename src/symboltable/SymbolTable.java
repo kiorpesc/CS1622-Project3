@@ -7,7 +7,7 @@ import java.util.*;
 public class SymbolTable implements ISymbolTable
 {
     private Map<String, ClassSymbol> _classes = new HashMap<String, ClassSymbol>();
-    
+
     private ClassSymbol _currentClass = null;
     private MethodSymbol _currentMethod = null;
 
@@ -17,7 +17,7 @@ public class SymbolTable implements ISymbolTable
             throw new IllegalStateException("cannot enter class scope while in another class/method scope");
 
         ClassSymbol classInfo = _classes.get(id);
-        if (classInfo == null)        
+        if (classInfo == null)
             throw new NoSuchScopeException(id);
 
         _currentClass = classInfo;
@@ -36,11 +36,11 @@ public class SymbolTable implements ISymbolTable
     }
 
     public void exitMethod()
-    {        
+    {
         if (_currentMethod == null)
             throw new IllegalStateException("cannot exit from method while not in a method`");
 
-        _currentMethod = null; 
+        _currentMethod = null;
     }
 
     public void exitClass()
@@ -64,7 +64,7 @@ public class SymbolTable implements ISymbolTable
         if (_currentClass != null)
         {
             // Navigate the inheritance hierarchy to see if the binding
-            // exists somewhere in current or parent classes. 
+            // exists somewhere in current or parent classes.
             ClassSymbol currentClass = _currentClass;
             while (currentClass != null)
             {
@@ -76,7 +76,7 @@ public class SymbolTable implements ISymbolTable
             }
         }
 
-        // Finally, check if the id corresponds to a class. 
+        // Finally, check if the id corresponds to a class.
         return getClass(id);
     }
 
@@ -106,7 +106,7 @@ public class SymbolTable implements ISymbolTable
         return _currentMethod;
     }
 
-    // Add a binding for a class 
+    // Add a binding for a class
     // Returns the old binding to the identifier, or null if no such binding existed.
     public ClassSymbol addClass(ClassSymbol symbol)
     {
@@ -124,7 +124,7 @@ public class SymbolTable implements ISymbolTable
     }
 
     // Add a binding for a variable to either the current method (if it exists) or the current
-    // class. 
+    // class.
     public VariableSymbol addVariable(VariableSymbol symbol)
     {
         if (_currentMethod != null)
@@ -139,7 +139,7 @@ public class SymbolTable implements ISymbolTable
     public String toString()
     {
         StringBuilder result = new StringBuilder();
-        
+
         for (ClassSymbol currentClass : _classes.values())
             result.append(currentClass.toString());
 
