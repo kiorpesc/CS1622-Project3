@@ -8,6 +8,8 @@ class Foo
 
 class Kerp
 {
+    int kerpsDerp;
+
     public int derp(int x)
     {
         return x;
@@ -21,7 +23,8 @@ class Herp extends Kerp
     public int hueHueHue(int y)
     {
         herpsDerp = 0;
-        return herpsDerp;
-    } 
+        kerpsDerp = herpsDerp;
+        return kerpsDerp;
+    }
 
 }

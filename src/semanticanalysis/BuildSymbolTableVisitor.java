@@ -33,6 +33,8 @@ public class BuildSymbolTableVisitor extends ErrorChecker implements Visitor
 
         for (int i = 0; i < list.size(); ++i)
             list.elementAt(i).accept(this);
+
+        _symbolTable.resolveInheritance();
     }
 
     public void visit(MainClass n)

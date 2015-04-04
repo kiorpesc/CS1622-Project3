@@ -8,6 +8,7 @@ public class ClassSymbol extends SymbolInfo
     private Map<String, MethodSymbol> _methods = new HashMap<String, MethodSymbol>();
     private Map<String, VariableSymbol> _variables = new HashMap<String, VariableSymbol>();
     private String _parentName;
+    private ClassSymbol _parentClass;
 
     public ClassSymbol(String name)
     {
@@ -38,6 +39,8 @@ public class ClassSymbol extends SymbolInfo
     // Retrieve the method specified by id
     public MethodSymbol getMethod(String id)
     {
+        if(!_methods.containsKey(id) && _parentClass != null)
+          return _parentClass.getMethod(id);
         return _methods.get(id);
     }
 
@@ -53,6 +56,8 @@ public class ClassSymbol extends SymbolInfo
     // Retrieve the variable specified by id
     public VariableSymbol getVariable(String id)
     {
+        if(!_variables.containsKey(id) && _parentClass != null)
+          return _parentClass.getVariable(id);
         return _variables.get(id);
     }
 
@@ -77,6 +82,16 @@ public class ClassSymbol extends SymbolInfo
     public String getParentName()
     {
         return _parentName;
+    }
+
+    public void setParentClass(ClassSymbol cl)
+    {
+      _parentClass = cl;
+    }
+
+    public ClassSymbol getParentClass()
+    {
+      return _parentClass;
     }
 
     public String toString()

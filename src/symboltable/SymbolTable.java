@@ -136,6 +136,15 @@ public class SymbolTable implements ISymbolTable
         throw new IllegalStateException("cannot add variable outside of class and method scopes");
     }
 
+    public void resolveInheritance()
+    {
+      for(ClassSymbol cl : _classes.values())
+      {
+        if(cl.getParentName() != null)
+          cl.setParentClass(getClass(cl.getParentName()));
+      }
+    }
+
     public String toString()
     {
         StringBuilder result = new StringBuilder();
