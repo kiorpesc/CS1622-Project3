@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class ErrorMethodDecl extends MethodDecl
 {
@@ -18,7 +19,5 @@ public class ErrorMethodDecl extends MethodDecl
     return null;
   }
 
-  public String accept(IRGenVisitor v) {
-    return null;
-  }
+  public void accept(IRGenVisitor v) { }
 }

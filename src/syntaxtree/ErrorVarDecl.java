@@ -2,6 +2,7 @@ package syntaxtree;
 import visitor.Visitor;
 import visitor.TypeVisitor;
 import irgeneration.IRGenVisitor;
+import symboltable.SymbolInfo;
 
 public class ErrorVarDecl extends VarDecl
 {
@@ -18,7 +19,4 @@ public class ErrorVarDecl extends VarDecl
     return null;
   }
 
-  public String accept(IRGenVisitor v) {
-    return null;
-  }
 }
