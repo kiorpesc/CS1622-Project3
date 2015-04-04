@@ -15,7 +15,7 @@ public class Test
         {
             System.err.println("usage: java NameAnalysisTest <input-file>");
             System.exit(1);
-        }        
+        }
 
         MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
 
@@ -46,6 +46,12 @@ public class Test
         typeChecker.visit(program);
         for (String error : typeChecker.getErrors())
             System.out.println(error);
+
+        if(!(typeChecker.getErrors().isEmpty() && nameAnalysis.getErrors().isEmpty() && symbolTableBuilder.getErrors().isEmpty()))
+          {
+            System.out.println("Errors encountered, cannot generate IR.");
+            return;
+          }
 
         System.out.println("======== Intermediate Representation ========");
 
