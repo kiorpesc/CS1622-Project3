@@ -35,6 +35,6 @@ public class VariableSymbol extends SymbolInfo
 
     public String toString()
     {
-        return getName() + " : " + _type;
+        return getName() + " : " + _type + "\n";
     }
 }

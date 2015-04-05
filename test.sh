@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -cp "lib/\*;src/" Test $1
+java -cp "lib/\*;src/" MiniJavaCompiler $1

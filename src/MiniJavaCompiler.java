@@ -7,7 +7,7 @@ import symboltable.*;
 import syntaxtree.*;
 import visitor.*;
 
-public class Test
+public class MiniJavaCompiler
 {
     public static void main(String[] args) throws Exception
     {
@@ -26,21 +26,13 @@ public class Test
 
         ISymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
 
-        System.out.println("======== Symbol Table ========");
-        System.out.println(symbolTable);
-
-        System.out.println("======== Symbol Table Errors ========");
         for (String error : symbolTableBuilder.getErrors())
             System.out.println(error);
-
-        System.out.println("======== Name Errors ========");
 
         NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
         nameAnalysis.visit(program);
         for (String error : nameAnalysis.getErrors())
             System.out.println(error);
-
-        System.out.println("======== Type Errors ========");
 
         TypeCheckVisitor typeChecker = new TypeCheckVisitor(symbolTable);
         typeChecker.visit(program);
@@ -52,8 +44,6 @@ public class Test
             System.out.println("Errors encountered, cannot generate IR.");
             return;
           }
-
-        System.out.println("======== Intermediate Representation ========");
 
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
