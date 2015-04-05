@@ -40,10 +40,10 @@ public class MiniJavaCompiler
             System.out.println(error);
 
         if(!(typeChecker.getErrors().isEmpty() && nameAnalysis.getErrors().isEmpty() && symbolTableBuilder.getErrors().isEmpty()))
-          {
+        {
             System.out.println("Errors encountered, cannot generate IR.");
             return;
-          }
+        }
 
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
