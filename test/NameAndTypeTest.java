@@ -14,9 +14,9 @@ class Bar
     {
         return 1;
     }
-    public int foo()
+    public int foo(;)
     {
-        int x;
+        int x;;
         boolean f;
 
         f = true;

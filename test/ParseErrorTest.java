@@ -36,6 +36,7 @@ class Bar
     // bad formal list
     public int quux(int x; int y) 
     {
+        int z;;
         return 0;
     }
 }

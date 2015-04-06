@@ -54,7 +54,13 @@ public class IRGenVisitor {
   // generate a unique else label
   public String generateElseLabel()
   {
-    String result = generateMethodLabel() + "_ELSE" + _ifCount++;
+    String result = generateMethodLabel() + "_ELSE" + _ifCount;
+    return result;
+  }
+
+  public String generateEndIfLabel()
+  {
+    String result = generateMethodLabel() + "_ENDIF" + _ifCount++;
     return result;
   }
 
@@ -176,11 +182,15 @@ public class IRGenVisitor {
     // create first Conditional Jump IR, add to list
     SymbolInfo arg1 = n.e.accept(this);
     String label = generateElseLabel();
+    String endLabel = generateEndIfLabel();
     IRCondJump quad = new IRCondJump(arg1, label);
     _irList.add(quad);
 
     // process the statement in the if clause
     n.s1.accept(this);
+    IRUncondJump endIf = new IRUncondJump(endLabel);
+    _irList.add(endIf);
+
 
     // then add else label to _irList
     IRLabel elseLabel = new IRLabel(label);
@@ -188,6 +198,10 @@ public class IRGenVisitor {
 
     // then process the else statement
     n.s2.accept(this);
+
+    IRLabel endIR = new IRLabel(endLabel);
+
+    _irList.add(endIR);
 
     return null;
   }
