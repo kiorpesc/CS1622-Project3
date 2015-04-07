@@ -5,11 +5,11 @@ import syntaxtree.Type;
 import java.util.*;
 
 // Holds information relevant to a Method symbol.
-public class MethodSymbol extends SymbolInfo 
+public class MethodSymbol extends SymbolInfo
 {
     private Map<String, VariableSymbol> _formals = new LinkedHashMap<String, VariableSymbol>();
     private Map<String, VariableSymbol> _locals = new HashMap<String, VariableSymbol>();
-
+    private String _label;
     private Type _returnType;
 
     public MethodSymbol(String name, Type returnType)
@@ -54,7 +54,7 @@ public class MethodSymbol extends SymbolInfo
     {
         String name = formal.getName();
         VariableSymbol old = _formals.put(name, formal);
-        
+
         // Check if a local variable with the same name exists
         if (old == null)
             old = _locals.get(name);
@@ -68,7 +68,7 @@ public class MethodSymbol extends SymbolInfo
     {
         String name = symbol.getName();
         VariableSymbol old = _locals.put(name, symbol);
-        
+
         // Check if a formal variable with the same name exists
         if (old == null)
             old = _formals.get(name);
@@ -89,6 +89,15 @@ public class MethodSymbol extends SymbolInfo
         return getVariable(id) != null;
     }
 
+    public void setLabel(String label)
+    {
+      _label = label;
+    }
+
+    public String getLabel()
+    {
+      return _label;
+    }
 
     public String toString()
     {
@@ -111,14 +120,14 @@ public class MethodSymbol extends SymbolInfo
             // remove extraneous comma
             result.setCharAt(result.length() - 1, ')');
         }
-        
+
         result.append(" : ");
         if (_returnType != null)
             result.append(_returnType.getName());
         result.append(" {\n");
 
         for (VariableSymbol local : _locals.values())
-            result.append(local.toString());            
+            result.append(local.toString());
 
         result.append("}\n");
         return result.toString();

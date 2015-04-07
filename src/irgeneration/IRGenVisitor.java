@@ -48,6 +48,8 @@ public class IRGenVisitor {
       label.append(t.toString());
     }
 
+    currMethod.setLabel(label.toString());
+
     return label.toString();
   }
 
@@ -163,12 +165,6 @@ public class IRGenVisitor {
     return null;
   }
 
-  //public String visit(Formal n){return null;}
-  //public String visit(IntArrayType n){return null;}
-  //public String visit(BooleanType n){return null;}
-  //public String visit(IntegerType n){return null;}
-  //public String visit(IdentifierType n){return null;}
-
   public SymbolInfo visit(Block n){
     for(int i = 0; i < n.sl.size(); i++)
     {
@@ -249,6 +245,7 @@ public class IRGenVisitor {
     _irList.add(quad);
 
     MethodSymbol arg = new MethodSymbol("System.out.println", null);  // TODO: this should be a method that is already in the symbol table
+    arg.setLabel("_system_out_println");
     SymbolInfo result = null;
     IRCall quadCall = new IRCall(arg, 1, result);
     _irList.add(quadCall);

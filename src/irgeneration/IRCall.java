@@ -5,11 +5,13 @@ import symboltable.*;
 public class IRCall extends IRQuadruple{
 
   private int _numParams;
+  private String _label;
 
   public IRCall(MethodSymbol arg1, int numParams, SymbolInfo result)
   {
     super("call", arg1, null, result);
     _numParams = numParams;
+    _label = arg1.getLabel();
   }
 
   public String toString()
@@ -19,7 +21,7 @@ public class IRCall extends IRQuadruple{
       {
         output.append(_result.getName());
         output.append(" := ");
-      }      
+      }
       output.append(_op);
       output.append(" ");
       output.append(_arg1.getName());
