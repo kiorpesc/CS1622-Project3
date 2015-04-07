@@ -69,6 +69,8 @@ public class CodeGenerator {
     inst.append(meth.getLabel());
 
     _mips.add(inst.toString());
+    
+    _currentParam = 0;  // now that we have jumped, parameter count is reset
 
   }
 
