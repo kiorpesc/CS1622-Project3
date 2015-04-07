@@ -1,6 +1,7 @@
 package irgeneration;
 
 import symboltable.SymbolInfo;
+import codegen.CodeGenerator;
 
 public class IRCondJump extends IRQuadruple{
 
@@ -26,4 +27,8 @@ public class IRCondJump extends IRQuadruple{
       return output.toString();
   }
 
+  public void accept(CodeGenerator g)
+  {
+    g.visit(this);
+  }
 }

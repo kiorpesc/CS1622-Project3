@@ -5,7 +5,7 @@ import syntaxtree.*;
 import codegen.CodeGenerator;
 
 // the generic storage format for IR
-public class IRQuadruple {
+public abstract class IRQuadruple {
 
   protected String _op;
   protected SymbolInfo _arg1;
@@ -27,10 +27,7 @@ public class IRQuadruple {
   }
 
   // probably unnecessary
-  public String toString()
-  {
-    return "";
-  }
+  public abstract String toString();
 
   public SymbolInfo getArg1()
   {
@@ -47,9 +44,6 @@ public class IRQuadruple {
     return _result;
   }
 
-  public void accept(CodeGenerator g)
-  {
-    g.visit(this);
-  }
+  public abstract void accept(CodeGenerator g);
 
 }

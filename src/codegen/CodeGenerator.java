@@ -36,27 +36,6 @@ public class CodeGenerator {
     // link provided library
   }
 
-  public void visit(IRQuadruple n)
-  {
-    // this is disgusting.
-
-    if(n instanceof IRCall)
-    {
-      visit((IRCall)n);
-    } else if (n instanceof IRParam)
-    {
-      visit((IRParam)n);
-    }
-    else if (n instanceof IRLabel)
-    {
-      visit((IRLabel)n);
-    }
-    else
-    {
-      System.out.println("Didn't get correct subclass.");
-    }
-  }
-
   public void visit(IRCall n)
   {
     StringBuilder inst = new StringBuilder();
@@ -69,18 +48,8 @@ public class CodeGenerator {
     inst.append(meth.getLabel());
 
     _mips.add(inst.toString());
-    
+
     _currentParam = 0;  // now that we have jumped, parameter count is reset
-
-  }
-
-  public void visit(IRAssignment n)
-  {
-
-  }
-
-  public void visit(IRCopy n)
-  {
 
   }
 
@@ -96,6 +65,61 @@ public class CodeGenerator {
       inst.append(n.getArg1().getName());
     }
     _mips.add(inst.toString());
+  }
+
+  public void visit(IRArrayAssign n)
+  {
+
+  }
+
+  public void visit(IRArrayLength n)
+  {
+
+  }
+
+  public void visit(IRArrayLookup n)
+  {
+
+  }
+
+  public void visit(IRAssignment n)
+  {
+
+  }
+
+  public void visit(IRCondJump n)
+  {
+
+  }
+
+  public void visit(IRCopy n)
+  {
+
+  }
+
+  public void visit(IRNewArray n)
+  {
+
+  }
+
+  public void visit(IRNewObject n)
+  {
+
+  }
+
+  public void visit(IRReturn n)
+  {
+
+  }
+
+  public void visit(IRUnaryAssignment n)
+  {
+
+  }
+
+  public void visit(IRUncondJump n)
+  {
+
   }
 
   public void printCode()

@@ -1,6 +1,7 @@
 package irgeneration;
 
 import symboltable.SymbolInfo;
+import codegen.CodeGenerator;
 
 public class IRArrayLookup extends IRQuadruple{
 
@@ -20,4 +21,8 @@ public class IRArrayLookup extends IRQuadruple{
       return output.toString();
   }
 
+  public void accept(CodeGenerator g)
+  {
+    g.visit(this);
+  }
 }
