@@ -26,6 +26,7 @@ clean:
 	-rm src/symboltable/*.class
 	-rm src/semanticanalysis/*.class
 	-rm src/irgeneration/*.class
+	-rm src/codegen/*.class
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
 	-rm src/sym.java

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 
+import codegen.*;
 import irgeneration.*;
 import semanticanalysis.*;
 import symboltable.*;
@@ -48,5 +49,9 @@ public class MiniJavaCompiler
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
         irGenerator.printIRList();
+
+        CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
+        codeGenerator.generateCode();
+        codeGenerator.printCode();
     }
 }

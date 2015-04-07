@@ -2,6 +2,7 @@ package irgeneration;
 
 import symboltable.*;
 import syntaxtree.*;
+import codegen.CodeGenerator;
 
 // the generic storage format for IR
 public class IRQuadruple {
@@ -44,6 +45,11 @@ public class IRQuadruple {
   public SymbolInfo getResult()
   {
     return _result;
+  }
+
+  public void accept(CodeGenerator g)
+  {
+    g.visit(this);
   }
 
 }
