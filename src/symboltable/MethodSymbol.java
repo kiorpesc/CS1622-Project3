@@ -33,6 +33,18 @@ public class MethodSymbol extends SymbolInfo
         return "method";
     }
 
+    public ArrayList<String> getFormalNames()
+    {
+      ArrayList<String> result = new ArrayList<String>();
+
+      for(VariableSymbol var : _formals.values())
+      {
+        result.add(var.getName());
+      }
+
+      return result;
+    }
+
     public List<Type> getFormalTypes()
     {
         List<Type> result = new ArrayList<Type>();

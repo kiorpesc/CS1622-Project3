@@ -42,9 +42,24 @@ public class CodeGenerator {
 
   private String getTempRegister(String varName)
   {
+    if (_regCount == 9)
+    {
+      System.err.println("Too many temporaries, exiting.");
+      System.exit(1);
+    }
     String regName = "$t"+_regCount++;
     _registerMap.put(varName, regName);
     return regName;
+  }
+
+  private String getParamRegister()
+  {
+    if (_currentParam == 3)
+    {
+      System.err.println("Too many parameters, exiting.");
+      System.exit(1);
+    }
+    return "$a" + _currentParam++;
   }
 
   public void visit(IRArrayAssign n)
@@ -97,11 +112,30 @@ public class CodeGenerator {
     // jal to label
     inst.append("jal ");
     MethodSymbol meth = (MethodSymbol)(n.getArg1());
+
+    ArrayList<String> formals = meth.getFormalNames();
+    for(int i = 0; i < formals.size(); i++)
+    {
+      _registerMap.put(formals.get(i), "$a" + (i+1));
+    }
+
     inst.append(meth.getLabel());
 
     _mips.add(inst.toString());
 
     _currentParam = 0;  // now that we have jumped, parameter count is reset
+
+    // now need to get result of call
+    if(n.getResult() != null)
+    {
+      String v0Reg = getTempRegister(n.getResult().getName());
+      inst = new StringBuilder("add ");
+      inst.append(v0Reg);
+      inst.append(", $v0, $zero");
+      _mips.add(inst.toString());
+    }
+
+
 
   }
 
@@ -142,7 +176,8 @@ public class CodeGenerator {
 
   public void visit(IRNewObject n)
   {
-
+    // reserve space for when new object is implemented
+    String resultReg = getTempRegister(n.getResult().getName());
   }
 
   public void visit(IRParam n)
@@ -150,8 +185,7 @@ public class CodeGenerator {
     String arg1VarName = n.getArg1().getName();
     StringBuilder inst = new StringBuilder();
       inst.append("add ");
-      inst.append("$a");
-      inst.append(_currentParam++);
+      inst.append(getParamRegister());
       inst.append(", ");
       inst.append(_registerMap.get(arg1VarName));
       inst.append(", $zero");
@@ -160,6 +194,14 @@ public class CodeGenerator {
 
   public void visit(IRReturn n)
   {
+    String retName = n.getArg1().getName();
+    // store result in $v0
+    StringBuilder retInst = new StringBuilder("add $v0, ");
+    retInst.append(_registerMap.get(retName));
+    retInst.append(", $zero");
+    _mips.add(retInst.toString());
+    String ret = "jr $ra";
+    _mips.add(ret);
 
   }
 
@@ -181,7 +223,7 @@ public class CodeGenerator {
     }
   }
 
-  public void printRegMap()
+  public void printRegisterMap()
   {
     for(String key : _registerMap.keySet())
     {

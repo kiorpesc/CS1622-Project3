@@ -13,13 +13,14 @@ public class MiniJavaCompiler
     public static void main(String[] args) throws Exception
     {
         String outputFileName = "test.asm";
-        if (args.length < 1)
+        if (args.length < 2)
         {
-            System.err.println("usage: java NameAnalysisTest <input-file>");
+            System.err.println("usage: java NameAnalysisTest <input-file> <output-file>");
             System.exit(1);
         }
 
         MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
+        outputFileName = args[1];
 
         Program program = (Program)parser.parse().value;
 
@@ -49,7 +50,7 @@ public class MiniJavaCompiler
 
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
-        //irGenerator.printIRList();
+        irGenerator.printIRList();
 
         CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
         codeGenerator.generateCode();
