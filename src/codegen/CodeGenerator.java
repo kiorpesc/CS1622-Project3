@@ -36,6 +36,13 @@ public class CodeGenerator {
     // link provided library
   }
 
+  private String getTempRegister(String varName)
+  {
+    String regName = "$t"+_regCount++;
+    _registerMap.put(varName, regName);
+    return regName;
+  }
+
   public void visit(IRArrayAssign n)
   {
 
@@ -53,7 +60,28 @@ public class CodeGenerator {
 
   public void visit(IRAssignment n)
   {
+      String arg1VarName = n.getArg1().getName();
+      String arg2VarName = n.getArg2().getName();
+      String resultVarName = n.getResult().getName();
 
+      StringBuilder inst = new StringBuilder();
+      switch(n.getOp()) {
+        case "+" : inst.append("add ");
+                   break;
+        case "-" : inst.append("sub ");
+                   break;
+        case "*" : inst.append("mult ");
+                   break;
+        case "&&" : inst.append("and ");
+                   break;
+        case "<"  : inst.append("slt ");
+      }
+      inst.append(getTempRegister(resultVarName));
+      inst.append(", ");
+      inst.append(_registerMap.get(arg1VarName));
+      inst.append(", ");
+      inst.append(_registerMap.get(arg2VarName));
+      _mips.add(inst.toString());
   }
 
   public void visit(IRCall n)
@@ -80,7 +108,22 @@ public class CodeGenerator {
 
   public void visit(IRCopy n)
   {
+    StringBuilder inst = new StringBuilder();
+    if(n.getArg1().getSymbolType() == "constant")
+    {
+      inst.append("li ");
+      inst.append(getTempRegister(n.getResult().getName()));
+      inst.append(", ");
+      inst.append(n.getArg1().getName());
+    } else {
+      inst.append("add ");
+      inst.append(getTempRegister(n.getResult().getName()));
+      inst.append(", ");
+      inst.append(n.getArg1().getName());
+      inst.append(", $zero");
+    }
 
+    _mips.add(inst.toString());
   }
 
   public void visit(IRLabel n)
@@ -100,16 +143,15 @@ public class CodeGenerator {
 
   public void visit(IRParam n)
   {
+    String arg1VarName = n.getArg1().getName();
     StringBuilder inst = new StringBuilder();
-    if(n.getArg1().getSymbolType() == "constant")
-    {
-      inst.append("li ");
+      inst.append("add ");
       inst.append("$a");
       inst.append(_currentParam++);
       inst.append(", ");
-      inst.append(n.getArg1().getName());
-    }
-    _mips.add(inst.toString());
+      inst.append(_registerMap.get(arg1VarName));
+      inst.append(", $zero");
+      _mips.add(inst.toString());
   }
 
   public void visit(IRReturn n)
@@ -135,5 +177,12 @@ public class CodeGenerator {
     }
   }
 
+  public void printRegMap()
+  {
+    for(String key : _registerMap.keySet())
+    {
+      System.out.println(key + " : " + _registerMap.get(key));
+    }
+  }
 
 }

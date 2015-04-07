@@ -29,6 +29,11 @@ public abstract class IRQuadruple {
   // probably unnecessary
   public abstract String toString();
 
+  public String getOp()
+  {
+    return _op;
+  }
+
   public SymbolInfo getArg1()
   {
     return _arg1;

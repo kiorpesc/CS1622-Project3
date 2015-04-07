@@ -385,17 +385,29 @@ public class IRGenVisitor {
 
   public SymbolInfo visit(IntegerLiteral n)
   {
-    return new ConstantSymbol(""+n.i, new IntegerType());
+    ConstantSymbol intConst = new ConstantSymbol(""+n.i, new IntegerType());
+    VariableSymbol result = getNextTemp(new IntegerType());
+    IRCopy storeConst = new IRCopy(intConst, result);
+    _irList.add(storeConst);
+    return result;
   }
 
   public SymbolInfo visit(True n)
   {
-      return new ConstantSymbol("true", new BooleanType());
+      ConstantSymbol boolConst = new ConstantSymbol("true", new BooleanType());
+      VariableSymbol result = getNextTemp(new BooleanType());
+      IRCopy storeConst = new IRCopy(boolConst, result);
+      _irList.add(storeConst);
+      return result;
   }
 
   public SymbolInfo visit(False n)
   {
-    return new ConstantSymbol("true", new BooleanType());
+    ConstantSymbol boolConst = new ConstantSymbol("false", new BooleanType());
+    VariableSymbol result = getNextTemp(new BooleanType());
+    IRCopy storeConst = new IRCopy(boolConst, result);
+    _irList.add(storeConst);
+    return result;
   }
 
   public SymbolInfo visit(IdentifierExp n)
