@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import irgeneration.*;
 import symboltable.*;
 
+import java.io.*;
+import java.util.Scanner;
+
+
 public class CodeGenerator {
 
   private HashMap<String, String> _registerMap;
@@ -183,6 +187,27 @@ public class CodeGenerator {
     {
       System.out.println(key + " : " + _registerMap.get(key));
     }
+  }
+
+  public void outputMIPSFile(String outputFileName) throws FileNotFoundException
+  {
+    String libraryFile = "runtime.asm";
+    PrintWriter outputFile = new PrintWriter(new File(outputFileName));
+
+    for(String inst : _mips)
+    {
+      outputFile.println(inst);
+    }
+
+    outputFile.println(); // a little space for readability
+
+    Scanner library = new Scanner(new FileReader(libraryFile));
+    while(library.hasNextLine())
+      outputFile.println(library.nextLine());
+
+    library.close();
+    outputFile.close();
+
   }
 
 }

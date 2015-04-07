@@ -12,6 +12,7 @@ public class MiniJavaCompiler
 {
     public static void main(String[] args) throws Exception
     {
+        String outputFileName = "test.asm";
         if (args.length < 1)
         {
             System.err.println("usage: java NameAnalysisTest <input-file>");
@@ -48,10 +49,12 @@ public class MiniJavaCompiler
 
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
-        irGenerator.printIRList();
+        //irGenerator.printIRList();
 
         CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
         codeGenerator.generateCode();
-        codeGenerator.printCode();
+        //codeGenerator.printCode();
+        System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----");
+        codeGenerator.outputMIPSFile(outputFileName); //TODO: make this an argument
     }
 }
