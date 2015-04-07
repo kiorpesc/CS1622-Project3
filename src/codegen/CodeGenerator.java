@@ -36,37 +36,6 @@ public class CodeGenerator {
     // link provided library
   }
 
-  public void visit(IRCall n)
-  {
-    StringBuilder inst = new StringBuilder();
-    // load args into $a0-3
-    // save current regs to stack
-    // save return address on the stack
-    // jal to label
-    inst.append("jal ");
-    MethodSymbol meth = (MethodSymbol)(n.getArg1());
-    inst.append(meth.getLabel());
-
-    _mips.add(inst.toString());
-
-    _currentParam = 0;  // now that we have jumped, parameter count is reset
-
-  }
-
-  public void visit(IRParam n)
-  {
-    StringBuilder inst = new StringBuilder();
-    if(n.getArg1().getSymbolType() == "constant")
-    {
-      inst.append("li ");
-      inst.append("$a");
-      inst.append(_currentParam++);
-      inst.append(", ");
-      inst.append(n.getArg1().getName());
-    }
-    _mips.add(inst.toString());
-  }
-
   public void visit(IRArrayAssign n)
   {
 
@@ -87,6 +56,23 @@ public class CodeGenerator {
 
   }
 
+  public void visit(IRCall n)
+  {
+    StringBuilder inst = new StringBuilder();
+    // load args into $a0-3
+    // save current regs to stack
+    // save return address on the stack
+    // jal to label
+    inst.append("jal ");
+    MethodSymbol meth = (MethodSymbol)(n.getArg1());
+    inst.append(meth.getLabel());
+
+    _mips.add(inst.toString());
+
+    _currentParam = 0;  // now that we have jumped, parameter count is reset
+
+  }
+
   public void visit(IRCondJump n)
   {
 
@@ -97,6 +83,11 @@ public class CodeGenerator {
 
   }
 
+  public void visit(IRLabel n)
+  {
+    _mips.add(n.toString());
+  }
+
   public void visit(IRNewArray n)
   {
 
@@ -105,6 +96,20 @@ public class CodeGenerator {
   public void visit(IRNewObject n)
   {
 
+  }
+
+  public void visit(IRParam n)
+  {
+    StringBuilder inst = new StringBuilder();
+    if(n.getArg1().getSymbolType() == "constant")
+    {
+      inst.append("li ");
+      inst.append("$a");
+      inst.append(_currentParam++);
+      inst.append(", ");
+      inst.append(n.getArg1().getName());
+    }
+    _mips.add(inst.toString());
   }
 
   public void visit(IRReturn n)
@@ -130,8 +135,5 @@ public class CodeGenerator {
     }
   }
 
-  public void visit(IRLabel n)
-  {
-    _mips.add(n.toString());
-  }
+
 }
