@@ -42,7 +42,7 @@ public class CodeGenerator {
 
   private String getTempRegister(String varName)
   {
-    if (_regCount == 9)
+    if (_regCount == 10)
     {
       System.err.println("Too many temporaries, exiting.");
       System.exit(1);
@@ -54,7 +54,7 @@ public class CodeGenerator {
 
   private String getParamRegister()
   {
-    if (_currentParam == 3)
+    if (_currentParam == 4)
     {
       System.err.println("Too many parameters, exiting.");
       System.exit(1);
@@ -106,6 +106,8 @@ public class CodeGenerator {
   public void visit(IRCall n)
   {
     StringBuilder inst = new StringBuilder();
+
+    // TODO: calling convention
     // load args into $a0-3
     // save current regs to stack
     // save return address on the stack
@@ -114,6 +116,7 @@ public class CodeGenerator {
     MethodSymbol meth = (MethodSymbol)(n.getArg1());
 
     ArrayList<String> formals = meth.getFormalNames();
+
     for(int i = 0; i < formals.size(); i++)
     {
       _registerMap.put(formals.get(i), "$a" + (i+1));
@@ -128,6 +131,7 @@ public class CodeGenerator {
     // now need to get result of call
     if(n.getResult() != null)
     {
+      _registerMap.put("this", "$a0");  // if void, its either print or exit
       String v0Reg = getTempRegister(n.getResult().getName());
       inst = new StringBuilder("add ");
       inst.append(v0Reg);
@@ -157,7 +161,7 @@ public class CodeGenerator {
       inst.append("add ");
       inst.append(getTempRegister(n.getResult().getName()));
       inst.append(", ");
-      inst.append(n.getArg1().getName());
+      inst.append(_registerMap.get(n.getArg1().getName()));
       inst.append(", $zero");
     }
 
@@ -203,6 +207,8 @@ public class CodeGenerator {
     String ret = "jr $ra";
     _mips.add(ret);
 
+    // TODO: calling convention
+
   }
 
   public void visit(IRUnaryAssignment n)
@@ -233,7 +239,7 @@ public class CodeGenerator {
 
   public void outputMIPSFile(String outputFileName) throws FileNotFoundException
   {
-    String libraryFile = "runtime.asm";
+    String libraryFile = "lib/runtime.asm";
     PrintWriter outputFile = new PrintWriter(new File(outputFileName));
 
     for(String inst : _mips)

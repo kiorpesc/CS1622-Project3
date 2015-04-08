@@ -30,3 +30,4 @@ clean:
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
 	-rm src/sym.java
+	-rm *.asm
