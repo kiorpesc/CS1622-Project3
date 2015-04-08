@@ -100,6 +100,12 @@ public class IRGenVisitor {
     _symbolTable.enterClass(n.i1.s);
     n.s.accept(this);
     _symbolTable.exitClass();
+
+    // todo: system.exit
+    MethodSymbol exit = new MethodSymbol("System.exit", null);
+    exit.setLabel("_system_exit");
+    IRCall exitCall = new IRCall(exit, 0, null);
+    _irList.add(exitCall);
     return null;
   }
 
