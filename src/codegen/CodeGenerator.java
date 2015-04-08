@@ -111,6 +111,9 @@ public class CodeGenerator {
     // load args into $a0-3
     // save current regs to stack
     // save return address on the stack
+    inst.append("addi $sp, $sp, -4\n");
+    inst.append("sw $ra, 0($sp)\n");
+
     // jal to label
     inst.append("jal ");
     MethodSymbol meth = (MethodSymbol)(n.getArg1());
@@ -204,8 +207,11 @@ public class CodeGenerator {
     retInst.append(_registerMap.get(retName));
     retInst.append(", $zero");
     _mips.add(retInst.toString());
-    String ret = "jr $ra";
-    _mips.add(ret);
+
+    retInst = new StringBuilder("lw $ra, 0($sp)\n");
+    retInst.append("addi $sp, $sp, 4\n");
+    retInst.append("jr $ra");
+    _mips.add(retInst.toString());
 
     // TODO: calling convention
 
