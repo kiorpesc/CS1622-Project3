@@ -13,7 +13,7 @@ import java.util.Scanner;
 
 public class CodeGenerator {
 
-  private Stack<HashMap<String, String>> _jumpMap;
+  //private Stack<HashMap<String, String>> _jumpMap;
   private HashMap<String, String> _registerMap;
   private int _regCount;
   private int _currentParam;
@@ -23,7 +23,7 @@ public class CodeGenerator {
 
   public CodeGenerator(ArrayList<IRQuadruple> irList)
   {
-    _jumpMap = new Stack<HashMap<String, String>>();
+    //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
     _regCount = 0;
     _currentParam = 0;
@@ -115,7 +115,7 @@ public class CodeGenerator {
 
 
     inst.append("addi $sp, $sp, -128\n");
-    for(int i = 0; i < 32; i++)
+    for(int i = 8; i < 32; i++) // $8 is $t0
     {
       inst.append("sw $");
       inst.append(i);
@@ -130,7 +130,7 @@ public class CodeGenerator {
   private void loadAllRegisters()
   {
     StringBuilder inst = new StringBuilder();
-    for(int i = 31; i >=0; i--)
+    for(int i = 31; i >= 8; i--)
     {
       inst.append("lw $");
       inst.append(i);
@@ -140,6 +140,11 @@ public class CodeGenerator {
     }
     inst.append("addi $sp, $sp, 128");
     _mips.add(inst.toString());
+  }
+
+  private void clearRegisterMap()
+  {
+    _registerMap = new HashMap<String,String>();
   }
 
   public void visit(IRCall n)
@@ -159,7 +164,7 @@ public class CodeGenerator {
 
     _mips.add(inst.toString());
 
-    _currentParam = 0;  // now that we have jumped, parameter count is reset
+    _currentParam = 0;  // now that we're past the jump instruction, parameter count is reset
 
     // now need to get result of call
     if(n.getResult() != null)
@@ -206,7 +211,7 @@ public class CodeGenerator {
     if(n.isMethod())
     {
       saveAllRegisters();
-      _registerMap = new HashMap<String, String>(); // we are entering new procedure
+      clearRegisterMap();
 
       _registerMap.put("this", "$a0");  // if void, its either print or exit
 
