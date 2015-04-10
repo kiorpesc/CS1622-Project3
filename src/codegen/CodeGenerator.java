@@ -2,6 +2,7 @@ package codegen;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Stack;
 
 import irgeneration.*;
 import symboltable.*;
@@ -12,6 +13,7 @@ import java.util.Scanner;
 
 public class CodeGenerator {
 
+  private Stack<HashMap<String, String>> _jumpMap;
   private HashMap<String, String> _registerMap;
   private int _regCount;
   private int _currentParam;
@@ -21,6 +23,7 @@ public class CodeGenerator {
 
   public CodeGenerator(ArrayList<IRQuadruple> irList)
   {
+    _jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
     _regCount = 0;
     _currentParam = 0;
@@ -79,28 +82,64 @@ public class CodeGenerator {
 
   public void visit(IRAssignment n)
   {
-      String arg1VarName = n.getArg1().getName();
-      String arg2VarName = n.getArg2().getName();
-      String resultVarName = n.getResult().getName();
+    String arg1VarName = n.getArg1().getName();
+    String arg2VarName = n.getArg2().getName();
+    String resultVarName = n.getResult().getName();
 
-      StringBuilder inst = new StringBuilder();
-      switch(n.getOp()) {
-        case "+" : inst.append("add ");
-                   break;
-        case "-" : inst.append("sub ");
-                   break;
-        case "*" : inst.append("mult ");
-                   break;
-        case "&&" : inst.append("and ");
-                   break;
-        case "<"  : inst.append("slt ");
-      }
-      inst.append(getTempRegister(resultVarName));
-      inst.append(", ");
-      inst.append(_registerMap.get(arg1VarName));
-      inst.append(", ");
-      inst.append(_registerMap.get(arg2VarName));
-      _mips.add(inst.toString());
+    StringBuilder inst = new StringBuilder();
+    switch(n.getOp()) {
+      case "+" : inst.append("add ");
+                 break;
+      case "-" : inst.append("sub ");
+                 break;
+      case "*" : inst.append("mult ");
+                 break;
+      case "&&" : inst.append("and ");
+                 break;
+      case "<"  : inst.append("slt ");
+    }
+    inst.append(getTempRegister(resultVarName));
+    inst.append(", ");
+    inst.append(_registerMap.get(arg1VarName));
+    inst.append(", ");
+    inst.append(_registerMap.get(arg2VarName));
+    _mips.add(inst.toString());
+  }
+
+  // save all current registers to the stack
+  private void saveAllRegisters()
+  {
+    // 32 * 4 = 128
+
+    StringBuilder inst = new StringBuilder();
+
+
+    inst.append("addi $sp, $sp, -128\n");
+    for(int i = 0; i < 32; i++)
+    {
+      inst.append("sw $");
+      inst.append(i);
+      inst.append(" ");
+      inst.append((4*i));
+      inst.append("($sp)\n");
+    }
+    _mips.add(inst.toString());
+  }
+
+  // load from the stack into registers
+  private void loadAllRegisters()
+  {
+    StringBuilder inst = new StringBuilder();
+    for(int i = 31; i >=0; i--)
+    {
+      inst.append("lw $");
+      inst.append(i);
+      inst.append(" ");
+      inst.append((4*i));
+      inst.append("($sp)\n");
+    }
+    inst.append("addi $sp, $sp, 128");
+    _mips.add(inst.toString());
   }
 
   public void visit(IRCall n)
@@ -109,21 +148,12 @@ public class CodeGenerator {
 
     // TODO: calling convention
     // load args into $a0-3
-    // save current regs to stack
-    // save return address on the stack
-    inst.append("addi $sp, $sp, -4\n");
-    inst.append("sw $ra, 0($sp)\n");
 
     // jal to label
     inst.append("jal ");
     MethodSymbol meth = (MethodSymbol)(n.getArg1());
 
-    ArrayList<String> formals = meth.getFormalNames();
 
-    for(int i = 0; i < formals.size(); i++)
-    {
-      _registerMap.put(formals.get(i), "$a" + (i+1));
-    }
 
     inst.append(meth.getLabel());
 
@@ -134,7 +164,6 @@ public class CodeGenerator {
     // now need to get result of call
     if(n.getResult() != null)
     {
-      _registerMap.put("this", "$a0");  // if void, its either print or exit
       String v0Reg = getTempRegister(n.getResult().getName());
       inst = new StringBuilder("add ");
       inst.append(v0Reg);
@@ -174,6 +203,20 @@ public class CodeGenerator {
   public void visit(IRLabel n)
   {
     _mips.add(n.toString());
+    if(n.isMethod())
+    {
+      saveAllRegisters();
+      _registerMap = new HashMap<String, String>(); // we are entering new procedure
+
+      _registerMap.put("this", "$a0");  // if void, its either print or exit
+
+      ArrayList<String> formals = n.getMethod().getFormalNames();
+
+      for(int i = 0; i < formals.size(); i++)
+      {
+        _registerMap.put(formals.get(i), "$a" + (i+1));
+      }
+    }
   }
 
   public void visit(IRNewArray n)
@@ -208,10 +251,8 @@ public class CodeGenerator {
     retInst.append(", $zero");
     _mips.add(retInst.toString());
 
-    retInst = new StringBuilder("lw $ra, 0($sp)\n");
-    retInst.append("addi $sp, $sp, 4\n");
-    retInst.append("jr $ra");
-    _mips.add(retInst.toString());
+    loadAllRegisters();
+    _mips.add("jr $ra");
 
     // TODO: calling convention
 

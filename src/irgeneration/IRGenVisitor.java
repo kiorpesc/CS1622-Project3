@@ -152,7 +152,7 @@ public class IRGenVisitor {
 
 
     // create a label for the method
-    IRLabel methodLabel = new IRLabel(generateMethodLabel());
+    IRLabel methodLabel = new IRLabel(generateMethodLabel(), _symbolTable.getCurrentMethod());
     _irList.add(methodLabel);
 
     // process each statement in the statement_list
