@@ -18,13 +18,18 @@ public class IRCondJump extends IRQuadruple{
   public String toString()
   {
       StringBuilder output = new StringBuilder(_ifFalse);
-      output.append(" := ");
+      output.append(" ");
       output.append(_arg1.getName());
       output.append(" ");
       output.append(_op);
       output.append(" ");
       output.append(_label);
       return output.toString();
+  }
+
+  public String getLabel()
+  {
+    return _label;
   }
 
   public void accept(CodeGenerator g)

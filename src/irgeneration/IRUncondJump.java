@@ -22,6 +22,11 @@ public class IRUncondJump extends IRQuadruple{
       return output.toString();
   }
 
+  public String getLabel()
+  {
+    return _label;
+  }
+
   public void accept(CodeGenerator g)
   {
     g.visit(this);

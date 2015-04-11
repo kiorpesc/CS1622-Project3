@@ -19,7 +19,6 @@ public class CodeGenerator {
   private int _currentParam;
   private ArrayList<String> _mips;
   private ArrayList<IRQuadruple> _irList;
-  private int _tempCount;
 
   public CodeGenerator(ArrayList<IRQuadruple> irList)
   {
@@ -29,7 +28,6 @@ public class CodeGenerator {
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
-    _tempCount = 0;
   }
 
   // walk IR list, generate basic MIPS for each statement
@@ -45,11 +43,6 @@ public class CodeGenerator {
 
   private String getTempRegister(String varName)
   {
-    if (_regCount == 10)
-    {
-      System.err.println("Too many temporaries, exiting.");
-      System.exit(1);
-    }
     String regName = "$t"+_regCount++;
     _registerMap.put(varName, regName);
     return regName;
@@ -80,6 +73,16 @@ public class CodeGenerator {
 
   }
 
+  public String getRegisterByName(String name)
+  {
+    if(_registerMap.containsKey(name))
+    {
+      return _registerMap.get(name);
+    } else {
+      return getTempRegister(name);
+    }
+  }
+
   public void visit(IRAssignment n)
   {
     String arg1VarName = n.getArg1().getName();
@@ -98,11 +101,11 @@ public class CodeGenerator {
                  break;
       case "<"  : inst.append("slt ");
     }
-    inst.append(getTempRegister(resultVarName));
+    inst.append(getRegisterByName(resultVarName));
     inst.append(", ");
-    inst.append(_registerMap.get(arg1VarName));
+    inst.append(getRegisterByName(arg1VarName));
     inst.append(", ");
-    inst.append(_registerMap.get(arg2VarName));
+    inst.append(getRegisterByName(arg2VarName));
     _mips.add(inst.toString());
   }
 
@@ -145,6 +148,7 @@ public class CodeGenerator {
   private void clearRegisterMap()
   {
     _registerMap = new HashMap<String,String>();
+    _regCount = 0;
   }
 
   public void visit(IRCall n)
@@ -169,7 +173,7 @@ public class CodeGenerator {
     // now need to get result of call
     if(n.getResult() != null)
     {
-      String v0Reg = getTempRegister(n.getResult().getName());
+      String v0Reg = getRegisterByName(n.getResult().getName());
       inst = new StringBuilder("add ");
       inst.append(v0Reg);
       inst.append(", $v0, $zero");
@@ -182,7 +186,13 @@ public class CodeGenerator {
 
   public void visit(IRCondJump n)
   {
-
+      String condVarName = n.getArg1().getName();
+      // beq $reg 0 LABEL
+      StringBuilder inst = new StringBuilder("beq ");
+      inst.append(getRegisterByName(condVarName));
+      inst.append(", $zero, ");
+      inst.append(n.getLabel());
+      _mips.add(inst.toString());
   }
 
   public void visit(IRCopy n)
@@ -191,14 +201,14 @@ public class CodeGenerator {
     if(n.getArg1().getSymbolType() == "constant")
     {
       inst.append("li ");
-      inst.append(getTempRegister(n.getResult().getName()));
+      inst.append(getRegisterByName(n.getResult().getName()));
       inst.append(", ");
       inst.append(n.getArg1().getName());
     } else {
       inst.append("add ");
-      inst.append(getTempRegister(n.getResult().getName()));
+      inst.append(getRegisterByName(n.getResult().getName()));
       inst.append(", ");
-      inst.append(_registerMap.get(n.getArg1().getName()));
+      inst.append(getRegisterByName(n.getArg1().getName()));
       inst.append(", $zero");
     }
 
@@ -232,7 +242,7 @@ public class CodeGenerator {
   public void visit(IRNewObject n)
   {
     // reserve space for when new object is implemented
-    String resultReg = getTempRegister(n.getResult().getName());
+    String resultReg = getRegisterByName(n.getResult().getName());
   }
 
   public void visit(IRParam n)
@@ -242,7 +252,7 @@ public class CodeGenerator {
       inst.append("add ");
       inst.append(getParamRegister());
       inst.append(", ");
-      inst.append(_registerMap.get(arg1VarName));
+      inst.append(getRegisterByName(arg1VarName));
       inst.append(", $zero");
       _mips.add(inst.toString());
   }
@@ -252,7 +262,7 @@ public class CodeGenerator {
     String retName = n.getArg1().getName();
     // store result in $v0
     StringBuilder retInst = new StringBuilder("add $v0, ");
-    retInst.append(_registerMap.get(retName));
+    retInst.append(getRegisterByName(retName));
     retInst.append(", $zero");
     _mips.add(retInst.toString());
 
@@ -270,7 +280,10 @@ public class CodeGenerator {
 
   public void visit(IRUncondJump n)
   {
-
+    // j LABEL
+    StringBuilder inst = new StringBuilder("j ");
+    inst.append(n.getLabel());
+    _mips.add(inst.toString());
   }
 
   public void printCode()
