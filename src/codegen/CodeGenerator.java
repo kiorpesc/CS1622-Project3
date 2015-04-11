@@ -15,7 +15,7 @@ public class CodeGenerator {
 
   //private Stack<HashMap<String, String>> _jumpMap;
   private HashMap<String, String> _registerMap;
-  private int _regCount;
+  private int _nextTempReg;
   private int _currentParam;
   private ArrayList<String> _mips;
   private ArrayList<IRQuadruple> _irList;
@@ -24,7 +24,8 @@ public class CodeGenerator {
   {
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
-    _regCount = 0;
+    // $8 == $t0
+    _nextTempReg = 8;
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
@@ -43,7 +44,15 @@ public class CodeGenerator {
 
   private String getTempRegister(String varName)
   {
-    String regName = "$t"+_regCount++;
+    // the $t* and $s* registers are in [8, 25]
+    // TODO: utilize other registers as per Milestone 4
+    if (_nextTempReg > 25)
+    {
+      System.err.println("Too many temporaries, exiting.");
+      System.exit(1);
+    }
+
+    String regName = "$"+_nextTempReg++;
     _registerMap.put(varName, regName);
     return regName;
   }
@@ -158,7 +167,7 @@ public class CodeGenerator {
   private void clearRegisterMap()
   {
     _registerMap = new HashMap<String,String>();
-    _regCount = 0;
+    _nextTempReg = 0;
   }
 
   public void visit(IRCall n)
