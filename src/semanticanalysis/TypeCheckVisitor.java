@@ -6,7 +6,7 @@ import visitor.TypeVisitor;
 
 import java.util.*;
 
-public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor 
+public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 {
     private ISymbolTable _symbolTable;
 
@@ -21,7 +21,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         {
             String name = ((IdentifierExp)rhs).s;
             SymbolInfo symbol = _symbolTable.getSymbol(name);
-            if (symbol != null && !symbol.isRValue())                        
+            if (symbol != null && !symbol.isRValue())
                 addError("Invalid r-value: " + symbol.getName() + " is a " + symbol.getSymbolType(), rhs.getLine(), rhs.getColumn());
         }
     }
@@ -55,9 +55,11 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 
     private void validateIntegerOperator(Exp lhs, Exp rhs, String op)
     {
-        if (!(lhs.accept(this) instanceof IntegerType) || !(rhs.accept(this) instanceof IntegerType))
+        if (!(lhs.accept(this) instanceof IntegerType))
             addError("Non-integer operand for operator " + op, lhs.getLine(), lhs.getColumn());
 
+        if (!(rhs.accept(this) instanceof IntegerType))
+            addError("Non-integer operand for operator " + op, rhs.getLine(), rhs.getColumn());
     }
 
     private List<Type> expressionsToTypes(ExpList list)
@@ -98,7 +100,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
 
         _symbolTable.exitMethod();
         _symbolTable.exitClass();
-    
+
 
         return null;
     }
@@ -108,7 +110,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
             return null;
 
         _symbolTable.enterClass(n.i.s);
-   
+
         // visit VarDecls
         if (n.vl != null)
         {
@@ -159,7 +161,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         {
             return null;
         }
-        
+
         // check StatementList and Expression
         for (int i = 0; i < n.sl.size(); ++i)
             n.sl.elementAt(i).accept(this);
@@ -254,7 +256,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
     public Type visit(ArrayAssign n)
     {
         // We should check this, but the project prompt doesn't say anything aout it.
-        Type indexType = n.e1.accept(this);        
+        Type indexType = n.e1.accept(this);
 
         Type rhsType = n.e2.accept(this);
 
@@ -279,7 +281,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
     public Type visit(LessThan n)
     {
         validateIntegerOperator(n.e1, n.e2, "<");
-        return new BooleanType();        
+        return new BooleanType();
     }
     public Type visit(Plus n)
     {
@@ -319,7 +321,7 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
         Type expType = n.e.accept(this);
         // Evaluating type of expression may have failed...
         if (expType != null)
-        {            
+        {
             ClassSymbol classType = _symbolTable.getClass(expType.getName());
             // may have tried to call method on non-object...
             if (classType != null)
@@ -338,10 +340,10 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
                     // Validate number of arguments
                     if (expTypes.size() != formalTypes.size())
                     {
-                        addError("Call of method " + method.getName() 
-                                + " does not match its declared number of arguments", 
+                        addError("Call of method " + method.getName()
+                                + " does not match its declared number of arguments",
                                 n.getLine(), n.getColumn());
-                    }                    
+                    }
                     else
                     {
                         // Validate type of arguments
@@ -353,14 +355,14 @@ public class TypeCheckVisitor extends ErrorChecker implements TypeVisitor
                                         n.getLine(), n.getColumn());
                                 break;
                             }
-                        }                        
+                        }
                     }
 
                     // return the return type of the method
                     return method.getReturnType();
                 }
-                // TODO: if method doesn't exist, should we return a type? 
-                // right now, just default to null                
+                // TODO: if method doesn't exist, should we return a type?
+                // right now, just default to null
             }
         }
         return null;
