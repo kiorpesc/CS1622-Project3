@@ -7,12 +7,12 @@ public class IntArrayType extends Type {
 
   public IntArrayType()
   {
-    super("int[]", 0,0);
+    super("int$array$", 0,0);
   }
 
   public IntArrayType(int line, int col)
   {
-    super("int[]", line, col);
+    super("int$array$", line, col);
   }
 
   public void accept(Visitor v) {
