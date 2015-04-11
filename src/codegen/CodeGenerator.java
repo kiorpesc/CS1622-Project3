@@ -167,7 +167,7 @@ public class CodeGenerator {
   private void clearRegisterMap()
   {
     _registerMap = new HashMap<String,String>();
-    _nextTempReg = 0;
+    _nextTempReg = 8;
   }
 
   public void visit(IRCall n)
