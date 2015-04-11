@@ -2,6 +2,7 @@ package codegen;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import irgeneration.*;
@@ -15,20 +16,30 @@ public class CodeGenerator {
 
   //private Stack<HashMap<String, String>> _jumpMap;
   private HashMap<String, String> _registerMap;
+  private int _nextIntermediateValue;
   private int _nextTempReg;
   private int _currentParam;
-  private ArrayList<String> _mips;
-  private ArrayList<IRQuadruple> _irList;
+  private List<String> _mips;
+  private List<IRQuadruple> _irList;
 
-  public CodeGenerator(ArrayList<IRQuadruple> irList)
+  public CodeGenerator(List<IRQuadruple> irList)
   {
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
     // $8 == $t0
     _nextTempReg = 8;
+    _nextIntermediateValue = 0;
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
+  }
+
+  private String getIntermediateName()
+  {
+    // need some way of producing names for values that are not
+    // named in 3-address code (i.e., intermediate values)
+    // so we can assign registers to them.
+    return "@@@unnamed" + _nextIntermediateValue++;
   }
 
   // walk IR list, generate basic MIPS for each statement
@@ -67,19 +78,99 @@ public class CodeGenerator {
     return "$a" + _currentParam++;
   }
 
+  private String generateMove(String dest, String source)
+  {
+    return generateInstruction("add", dest, source, "$zero");
+  }
+
+  private String generateInstruction(String op, String dest, String arg1, String arg2)
+  {
+    StringBuilder result = new StringBuilder();
+    result.append(op);
+    result.append(' ');
+    result.append(dest);
+    result.append(", ");
+    result.append(arg1);
+    result.append(", ");
+    result.append(arg2);
+    result.append('\n');
+    return result.toString();
+  }
+
   public void visit(IRArrayAssign n)
   {
+    String resultReg = getRegisterByName(n.getResult().getName());
+    String arrayReg = getRegisterByName(n.getArg1().getName());
+    String indexReg = getRegisterByName(n.getArg2().getName());
 
+    StringBuilder inst = new StringBuilder();
+
+    String tempReg = getRegisterByName(getIntermediateName());
+
+    // move index into temporary register
+    inst.append(generateMove(tempReg, indexReg));
+    // add 1 to the index (move beyond length of array);
+    inst.append(generateInstruction("add", tempReg, tempReg, "1"));
+    // left shift the index by 2
+    inst.append(generateInstruction("sll", tempReg, tempReg, "2"));
+    // add index to array address
+    inst.append(generateInstruction("add", tempReg, arrayReg, tempReg));
+
+    // store the result register into the array
+    inst.append("sw ");
+    inst.append(resultReg);
+    inst.append(", (");
+    inst.append(tempReg);
+    inst.append(")\n");
+
+    _mips.add(inst.toString());
   }
 
   public void visit(IRArrayLength n)
   {
+    String resultReg = getRegisterByName(n.getResult().getName());
+    String arrayReg = getRegisterByName(n.getArg1().getName());
 
+    StringBuilder inst = new StringBuilder();
+    // load a word
+    inst.append("lw ");
+    // into the result register
+    inst.append(resultReg);
+    // from 0 bytes into the array
+    inst.append(", (");
+    inst.append(arrayReg);
+    inst.append(")\n");
+
+    _mips.add(inst.toString());
   }
 
   public void visit(IRArrayLookup n)
   {
+    String resultReg = getRegisterByName(n.getResult().getName());
+    String arrayReg = getRegisterByName(n.getArg1().getName());
+    String indexReg = getRegisterByName(n.getArg2().getName());
 
+    String tempReg = getRegisterByName(getIntermediateName());
+
+    StringBuilder inst = new StringBuilder();
+
+    // move index into temporary register
+    inst.append(generateMove(tempReg, indexReg));
+    // add 1 to the index (move beyond length of array);
+    inst.append(generateInstruction("add", tempReg, tempReg, "1"));
+    // left shift the index by 2
+    inst.append(generateInstruction("sll", tempReg, tempReg, "2"));
+    // add index to array address
+    inst.append(generateInstruction("add", tempReg, arrayReg, tempReg));
+
+    // load the value from the array into the result
+    inst.append("lw ");
+    inst.append(resultReg);
+    inst.append(", (");
+    inst.append(tempReg);
+    inst.append(")\n");
+
+    _mips.add(inst.toString());
   }
 
   public String getRegisterByName(String name)
@@ -168,6 +259,7 @@ public class CodeGenerator {
   {
     _registerMap = new HashMap<String,String>();
     _nextTempReg = 8;
+    _nextIntermediateValue = 0;
   }
 
   public void visit(IRCall n)
@@ -264,7 +356,22 @@ public class CodeGenerator {
 
   public void visit(IRNewArray n)
   {
+    // get register for the result of the new
+    String resultReg = getRegisterByName(n.getResult().getName());
+    // get register that holds the size value
+    String sizeReg = getRegisterByName(n.getArg2().getName());
 
+    StringBuilder inst = new StringBuilder();
+    // left shift size by 2 (multiplies by 4) and store in the argument register
+    inst.append(generateInstruction("sll", getParamRegister(), sizeReg, "2"));
+    // jump to the new array routine
+    inst.append("jal _new_array\n");
+    // move the address to the result register
+    inst.append(generateMove(resultReg, "$v0"));
+
+    // reset number of parameters being used.
+    _mips.add(inst.toString());
+    _currentParam = 0;
   }
 
   public void visit(IRNewObject n)
