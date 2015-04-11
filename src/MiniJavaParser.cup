@@ -48,6 +48,8 @@ precedence left LESS_THAN;
 precedence left PLUS, MINUS;
 precedence left MULTIPLY;
 
+precedence nonassoc DEREFERENCE;
+
 start with program;
 
 program ::=
