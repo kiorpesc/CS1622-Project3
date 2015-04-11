@@ -90,22 +90,32 @@ public class CodeGenerator {
     String resultVarName = n.getResult().getName();
 
     StringBuilder inst = new StringBuilder();
-    switch(n.getOp()) {
-      case "+" : inst.append("add ");
+
+    if(n.getOp() == "*")
+    {
+      inst.append("mult ");
+      inst.append(getRegisterByName(arg1VarName));
+      inst.append(", ");
+      inst.append(getRegisterByName(arg2VarName));
+      inst.append("\nmflo ");
+      inst.append(getRegisterByName(resultVarName));
+    } else {
+
+      switch(n.getOp()) {
+        case "+" : inst.append("add ");
                  break;
-      case "-" : inst.append("sub ");
+        case "-" : inst.append("sub ");
                  break;
-      case "*" : inst.append("mult ");
+        case "&&" : inst.append("and ");
                  break;
-      case "&&" : inst.append("and ");
-                 break;
-      case "<"  : inst.append("slt ");
+        case "<"  : inst.append("slt ");
+      }
+      inst.append(getRegisterByName(resultVarName));
+      inst.append(", ");
+      inst.append(getRegisterByName(arg1VarName));
+      inst.append(", ");
+      inst.append(getRegisterByName(arg2VarName));
     }
-    inst.append(getRegisterByName(resultVarName));
-    inst.append(", ");
-    inst.append(getRegisterByName(arg1VarName));
-    inst.append(", ");
-    inst.append(getRegisterByName(arg2VarName));
     _mips.add(inst.toString());
   }
 
@@ -223,13 +233,22 @@ public class CodeGenerator {
       saveAllRegisters();
       clearRegisterMap();
 
-      _registerMap.put("this", "$a0");  // if void, its either print or exit
+      // move arguments into non-argument registers for safety
+      StringBuilder inst = new StringBuilder("add ");
+      inst.append(getRegisterByName("this"));
+      inst.append(", $a0, $zero");
+      _mips.add(inst.toString());
 
       ArrayList<String> formals = n.getMethod().getFormalNames();
 
       for(int i = 0; i < formals.size(); i++)
       {
-        _registerMap.put(formals.get(i), "$a" + (i+1));
+        inst = new StringBuilder("add ");
+        inst.append(getRegisterByName(formals.get(i)));
+        inst.append(", $a");
+        inst.append((i+1));
+        inst.append(", $zero");
+        _mips.add(inst.toString());
       }
     }
   }
