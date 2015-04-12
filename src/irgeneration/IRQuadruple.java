@@ -49,6 +49,6 @@ public abstract class IRQuadruple {
     return _result;
   }
 
-  public abstract void accept(CodeGenerator g);
+  public abstract void accept(IRVisitor g);
 
 }

@@ -31,7 +31,7 @@ public class IRCall extends IRQuadruple{
       return output.toString();
   }
 
-  public void accept(CodeGenerator g)
+  public void accept(IRVisitor g)
   {
     g.visit(this);
   }

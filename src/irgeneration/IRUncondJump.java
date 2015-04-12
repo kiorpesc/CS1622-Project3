@@ -27,7 +27,7 @@ public class IRUncondJump extends IRQuadruple{
     return _label;
   }
 
-  public void accept(CodeGenerator g)
+  public void accept(IRVisitor g)
   {
     g.visit(this);
   }

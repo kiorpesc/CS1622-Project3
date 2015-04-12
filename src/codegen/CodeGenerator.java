@@ -12,7 +12,7 @@ import java.io.*;
 import java.util.Scanner;
 
 
-public class CodeGenerator {
+public class CodeGenerator implements IRVisitor {
 
   //private Stack<HashMap<String, String>> _jumpMap;
   private HashMap<String, String> _registerMap;
