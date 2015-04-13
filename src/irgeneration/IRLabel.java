@@ -45,4 +45,9 @@ public class IRLabel extends IRQuadruple{
   {
     return _method;
   }
+
+  public String getLabel()
+  {
+    return _label;
+  }
 }

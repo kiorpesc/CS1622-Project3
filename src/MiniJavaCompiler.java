@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.*;
 
 import codegen.*;
+import controlflow.*;
 import irgeneration.*;
 import semanticanalysis.*;
 import symboltable.*;
@@ -51,6 +52,9 @@ public class MiniJavaCompiler
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
         irGenerator.printIRList();
+
+        ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irGenerator.getIRList());
+        // TODO: register allocation
 
         CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
         codeGenerator.generateCode();

@@ -1,6 +1,6 @@
 JAVAC = javac
 JAVA = java
-CUP = java -jar lib/java-cup-11a.jar 
+CUP = java -jar lib/java-cup-11a.jar
 JFLEX = java -jar lib/jflex-1.6.0.jar
 CLASSPATH_WIN = "lib/\*;src/"
 CLASSPATH_LINUX = "lib/java-cup-11a.jar:src/"
@@ -27,6 +27,7 @@ clean:
 	-rm src/semanticanalysis/*.class
 	-rm src/irgeneration/*.class
 	-rm src/codegen/*.class
+	-rm src/controlflow/*.class
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
 	-rm src/sym.java
