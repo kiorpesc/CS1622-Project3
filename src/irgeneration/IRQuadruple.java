@@ -49,6 +49,27 @@ public abstract class IRQuadruple {
     return _result;
   }
 
+  // replace the arguments with replaceWith, if any of them are
+  // toReplace.
+  public boolean replaceArgs(SymbolInfo toReplace, SymbolInfo replaceWith)
+  {
+    boolean result = false;
+
+    if (_arg1 == toReplace)
+    {
+      _arg1 = replaceWith;
+      result = true;
+    }
+
+    if (_arg2 == toReplace)
+    {
+      _arg2 = replaceWith;
+      result = true;
+    }
+
+    return result;
+  }
+
   public abstract void accept(IRVisitor g);
 
 }

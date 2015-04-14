@@ -4,6 +4,7 @@ import java.util.*;
 import codegen.*;
 import controlflow.*;
 import irgeneration.*;
+import optimization.*;
 import semanticanalysis.*;
 import symboltable.*;
 import syntaxtree.*;
@@ -53,10 +54,30 @@ public class MiniJavaCompiler
         irGenerator.visit(program);
         irGenerator.printIRList();
 
-        ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irGenerator.getIRList());
-        // TODO: register allocation
+        List<IRQuadruple> irList = irGenerator.getIRList();
+        ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
 
-        CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
+        // optimization
+        // TODO: control this with command line flag
+        ConstantFolder folder = new ConstantFolder(irList);
+        ConstantPropagator prop = new ConstantPropagator(irList, cfgBuilder.getControlFlowGraphs());
+
+        while (folder.wasOptimized() || prop.wasOptimized())
+        {
+            System.out.println("repeating optimization");
+            cfgBuilder = new ControlFlowGraphBuilder(irList);
+            prop = new ConstantPropagator(irList, cfgBuilder.getControlFlowGraphs());
+            folder = new ConstantFolder(irList);
+        }
+
+        System.out.println("----- OPTIMIZED IR -----");
+        for (IRQuadruple irq : irList)
+        {
+            System.out.println(irq);
+        }
+
+        // TODO: register allocation
+        CodeGenerator codeGenerator = new CodeGenerator(irList);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----");
