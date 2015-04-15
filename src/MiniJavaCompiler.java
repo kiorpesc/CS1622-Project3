@@ -70,6 +70,8 @@ public class MiniJavaCompiler
             }
         }
 
+        ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
+
         for(ControlFlowGraph cfg : cfgBuilder.getControlFlowGraphs())
         {
           LivenessAnalysis la = new LivenessAnalysis(cfg);
