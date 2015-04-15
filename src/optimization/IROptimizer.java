@@ -28,12 +28,23 @@ public class IROptimizer
 
     public boolean optimizeOnce()
     {
+        // we might be able to more smartly repeat the optimizations,
+        // but whatever yolo
         // build our CFGS for the IR
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(_irList);
         List<ControlFlowGraph> cfgs = cfgBuilder.getControlFlowGraphs();
 
         ConstantFolder folder = new ConstantFolder(_irList);
+        // rebuild CFG in case folder was optimized, since folding
+        // changes the IR
+        if (folder.wasOptimized())
+        {
+            cfgBuilder = new ControlFlowGraphBuilder(_irList);
+            cfgs = cfgBuilder.getControlFlowGraphs();
+        }
         ConstantPropagator prop = new ConstantPropagator(_irList, cfgs);
+        // don't need to rebuild CFG, since propagating just changes
+        // arguments
         DeadCodeEliminator elim = new DeadCodeEliminator(_irList, cfgs);
 
         return folder.wasOptimized() || prop.wasOptimized() || elim.wasOptimized();

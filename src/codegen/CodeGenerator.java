@@ -97,8 +97,52 @@ public class CodeGenerator implements IRVisitor {
     return result.toString();
   }
 
+   // save all current registers to the stack
+  private void saveAllRegisters()
+  {
+    // 32 * 4 = 128
+
+    StringBuilder inst = new StringBuilder();
+
+
+    inst.append("addi $sp, $sp, -128\n");
+    for(int i = 8; i < 32; i++) // $8 is $t0
+    {
+      inst.append("sw $");
+      inst.append(i);
+      inst.append(" ");
+      inst.append((4*i));
+      inst.append("($sp)\n");
+    }
+    _mips.add(inst.toString());
+  }
+
+  // load from the stack into registers
+  private void loadAllRegisters()
+  {
+    StringBuilder inst = new StringBuilder();
+    for(int i = 31; i >= 8; i--)
+    {
+      inst.append("lw $");
+      inst.append(i);
+      inst.append(" ");
+      inst.append((4*i));
+      inst.append("($sp)\n");
+    }
+    inst.append("addi $sp, $sp, 128");
+    _mips.add(inst.toString());
+  }
+
+  private void clearRegisterMap()
+  {
+    _registerMap = new HashMap<String,String>();
+    _nextTempReg = 8;
+    _nextIntermediateValue = 0;
+  }
+
   public void visit(IRArrayAssign n)
   {
+    // TODO: handle constants
     String resultReg = getRegisterByName(n.getResult().getName());
     String arrayReg = getRegisterByName(n.getArg1().getName());
     String indexReg = getRegisterByName(n.getArg2().getName());
@@ -146,6 +190,7 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRArrayLookup n)
   {
+    //TODO: handle constants
     String resultReg = getRegisterByName(n.getResult().getName());
     String arrayReg = getRegisterByName(n.getArg1().getName());
     String indexReg = getRegisterByName(n.getArg2().getName());
@@ -188,7 +233,17 @@ public class CodeGenerator implements IRVisitor {
     if (sym instanceof ConstantSymbol)
     {
       inst.append("li $v1, ");
-      inst.append(((ConstantSymbol)sym).getValue());
+      String value = ((ConstantSymbol)sym).getValue();
+      switch (value)
+      {
+        case "true":
+          value = "1";
+          break;
+        case "false":
+          value = "0";
+          break;
+      }
+      inst.append(value);
       inst.append('\n');
       return "$v1";
     }
@@ -231,49 +286,6 @@ public class CodeGenerator implements IRVisitor {
     _mips.add(inst.toString());
   }
 
-  // save all current registers to the stack
-  private void saveAllRegisters()
-  {
-    // 32 * 4 = 128
-
-    StringBuilder inst = new StringBuilder();
-
-
-    inst.append("addi $sp, $sp, -128\n");
-    for(int i = 8; i < 32; i++) // $8 is $t0
-    {
-      inst.append("sw $");
-      inst.append(i);
-      inst.append(" ");
-      inst.append((4*i));
-      inst.append("($sp)\n");
-    }
-    _mips.add(inst.toString());
-  }
-
-  // load from the stack into registers
-  private void loadAllRegisters()
-  {
-    StringBuilder inst = new StringBuilder();
-    for(int i = 31; i >= 8; i--)
-    {
-      inst.append("lw $");
-      inst.append(i);
-      inst.append(" ");
-      inst.append((4*i));
-      inst.append("($sp)\n");
-    }
-    inst.append("addi $sp, $sp, 128");
-    _mips.add(inst.toString());
-  }
-
-  private void clearRegisterMap()
-  {
-    _registerMap = new HashMap<String,String>();
-    _nextTempReg = 8;
-    _nextIntermediateValue = 0;
-  }
-
   public void visit(IRCall n)
   {
     StringBuilder inst = new StringBuilder();
@@ -309,10 +321,11 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRCondJump n)
   {
-      String condVarName = n.getArg1().getName();
       // beq $reg 0 LABEL
-      StringBuilder inst = new StringBuilder("beq ");
-      inst.append(getRegisterByName(condVarName));
+      StringBuilder inst = new StringBuilder();
+      String condReg = getRegisterForValue(inst, n.getArg1());
+      inst.append("beq ");
+      inst.append(condReg);
       inst.append(", $zero, ");
       inst.append(n.getLabel());
       _mips.add(inst.toString());
@@ -432,7 +445,7 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRUnaryAssignment n)
   {
-
+    // wut
   }
 
   public void visit(IRUncondJump n)
