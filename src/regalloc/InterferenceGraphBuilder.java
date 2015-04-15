@@ -72,13 +72,13 @@ public class InterferenceGraphBuilder {
 
     public String toString()
     {
-      StringBuilder output = new StringBuilder("========== INTERFERENCES: =========");
+      StringBuilder output = new StringBuilder("========== INTERFERENCES: =========\n");
       for(SymbolInfo key : _graph.keySet())
       {
         output.append("NODE:    ");
-        output.append(key);
+        output.append(key.getName());
         output.append(" ::: ");
-        output.append(_graph.get(key));
+        output.append(_graph.get(key).getName());
         output.append("\n");
       }
       return output.toString();

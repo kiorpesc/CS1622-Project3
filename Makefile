@@ -21,6 +21,7 @@ linux:
 
 clean:
 	-rm src/*.class
+	-rm src/regalloc/*.class
 	-rm src/syntaxtree/*.class
 	-rm src/visitor/*.class
 	-rm src/symboltable/*.class
