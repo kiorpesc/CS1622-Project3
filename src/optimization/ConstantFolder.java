@@ -5,31 +5,28 @@ import irgeneration.*;
 import symboltable.*;
 import syntaxtree.*;
 
-public class ConstantFolder implements IRVisitor
+public class ConstantFolder
 {
-    private List<IRQuadruple> _optimizedIr;
-    private int _statementIndex = 0;
     private boolean _wasOptimized = false;
 
     // folds constant expressions into single constant values by
     // evaluation them at compile-time.
     public ConstantFolder(List<IRQuadruple> irList)
     {
-        _optimizedIr = irList;
-        for (IRQuadruple irq : _optimizedIr)
+        for (int i = 0; i < irList.size(); ++i)
         {
-            irq.accept(this);
-            _statementIndex++;
+            IRQuadruple irq = irList.get(i);
+            if (irq instanceof IRAssignment)
+            {
+                irList.set(i, tryFoldAssignment((IRAssignment)irq, irList));
+            }
         }
     }
     public boolean wasOptimized()
     {
         return _wasOptimized;
     }
-    public void visit(IRArrayAssign n) { }
-    public void visit(IRArrayLength n) { }
-    public void visit(IRArrayLookup n) { }
-    public void visit(IRAssignment n)
+    private IRQuadruple tryFoldAssignment(IRAssignment n, List<IRQuadruple> irList)
     {
         SymbolInfo arg1 = n.getArg1();
         SymbolInfo arg2 = n.getArg2();
@@ -60,30 +57,20 @@ public class ConstantFolder implements IRVisitor
                     /*constant = "" + (Boolean.parseBoolean(value1) && Boolean.parseBoolean(value2));
                     constantType = new BooleanType();
                     break;*/
-                    return;
+                    return n;
                 case "<":
                     /*constant = "" + (Integer.parseInt(value1) < Integer.parseInt(value2));
                     constantType = new BooleanType();
                     break;*/
-                    return;
+                    return n;
 
                 default:
                     throw new IllegalArgumentException("unexpected operator in assignment");
             }
 
             _wasOptimized = true;
-            IRCopy replacement = new IRCopy(new ConstantSymbol(constant, constantType), n.getResult());
-            _optimizedIr.set(_statementIndex, replacement);
+            return new IRCopy(new ConstantSymbol(constant, constantType), n.getResult());
         }
+        return n;
     }
-    public void visit(IRCall n) { }
-    public void visit(IRCondJump n) { }
-    public void visit(IRCopy n) { }
-    public void visit(IRLabel n) { }
-    public void visit(IRNewArray n) { }
-    public void visit(IRNewObject n) { }
-    public void visit(IRParam n) { }
-    public void visit(IRReturn n) { }
-    public void visit(IRUnaryAssignment n) { }
-    public void visit(IRUncondJump n) { }
 }

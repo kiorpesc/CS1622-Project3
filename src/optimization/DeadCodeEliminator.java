@@ -6,7 +6,7 @@ import controlflow.*;
 import irgeneration.*;
 import symboltable.*;
 
-public class DeadCodeEliminator implements IRVisitor
+public class DeadCodeEliminator
 {
 
     private boolean _optimized = false;
@@ -111,20 +111,4 @@ public class DeadCodeEliminator implements IRVisitor
     {
         return (irq instanceof IRCopy) && (irq.getArg1() instanceof ConstantSymbol);
     }
-
-    public void visit(IRArrayAssign n) { }
-    public void visit(IRArrayLength n) { }
-    public void visit(IRArrayLookup n) { }
-    public void visit(IRAssignment n) { }
-    public void visit(IRCall n) { }
-    public void visit(IRCondJump n) { }
-    public void visit(IRCopy n) { }
-    public void visit(IRLabel n) { }
-    public void visit(IRNewArray n) { }
-    public void visit(IRNewObject n) { }
-    public void visit(IRParam n) { }
-    public void visit(IRReturn n) { }
-    public void visit(IRUnaryAssignment n) { }
-    public void visit(IRUncondJump n) { }
-
 }
