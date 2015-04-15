@@ -62,8 +62,8 @@ public class MiniJavaCompiler
           LivenessAnalysis la = new LivenessAnalysis(cfg);
           System.out.println(la);
 
-          InterferenceGraphBuilder igb = new InterferenceGraphBuilder(la, cfg);
-          System.out.println(igb);
+          InterferenceGraph ig = new InterferenceGraph(la, cfg);
+          System.out.println(ig);
         }
 
 
