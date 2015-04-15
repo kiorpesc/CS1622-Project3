@@ -50,7 +50,6 @@ public class CodeGenerator implements IRVisitor {
     {
       _irList.get(i).accept(this);
     }
-    printRegisterMap();
     // link provided library
   }
 
@@ -270,7 +269,6 @@ public class CodeGenerator implements IRVisitor {
 
   private void clearRegisterMap()
   {
-    printRegisterMap();
     _registerMap = new HashMap<String,String>();
     _nextTempReg = 8;
     _nextIntermediateValue = 0;
