@@ -80,7 +80,7 @@ public class MiniJavaCompiler
           InterferenceGraph ig = new InterferenceGraph(la, cfg);
           System.out.println(ig);
 
-          RegisterAllocator regAlloc = new RegisterAllocator(ig, 9);
+          RegisterAllocator regAlloc = new RegisterAllocator(ig, 23);
           System.out.println(regAlloc);
         }
 

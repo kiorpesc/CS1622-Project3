@@ -24,7 +24,8 @@ public class InterferenceGraph {
 
     public void buildInterferenceGraph()
     {
-      for(BasicBlock block : _cfg.getAllBlocks()){
+      Set<BasicBlock> cfgBlocks = _cfg.getAllBlocks();
+      for(BasicBlock block : cfgBlocks){        
         processLiveIn(block);
         processLiveOut(block);
       }
