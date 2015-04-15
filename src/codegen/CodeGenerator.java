@@ -50,6 +50,7 @@ public class CodeGenerator implements IRVisitor {
     {
       _irList.get(i).accept(this);
     }
+    printRegisterMap();
     // link provided library
   }
 
@@ -183,20 +184,32 @@ public class CodeGenerator implements IRVisitor {
     }
   }
 
+  private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
+  {
+    if (sym instanceof ConstantSymbol)
+    {
+      inst.append("li $v1, ");
+      inst.append(((ConstantSymbol)sym).getValue());
+      inst.append('\n');
+      return "$v1";
+    }
+    return getRegisterByName(sym.getName());
+  }
+
   public void visit(IRAssignment n)
   {
-    String arg1VarName = n.getArg1().getName();
-    String arg2VarName = n.getArg2().getName();
-    String resultVarName = n.getResult().getName();
-
     StringBuilder inst = new StringBuilder();
+
+    String arg1RegName = getRegisterForValue(inst, n.getArg1());
+    String arg2RegName = getRegisterForValue(inst, n.getArg2());
+    String resultVarName = n.getResult().getName();
 
     if(n.getOp() == "*")
     {
       inst.append("mult ");
-      inst.append(getRegisterByName(arg1VarName));
+      inst.append(arg1RegName);
       inst.append(", ");
-      inst.append(getRegisterByName(arg2VarName));
+      inst.append(arg2RegName);
       inst.append("\nmflo ");
       inst.append(getRegisterByName(resultVarName));
     } else {
@@ -212,9 +225,9 @@ public class CodeGenerator implements IRVisitor {
       }
       inst.append(getRegisterByName(resultVarName));
       inst.append(", ");
-      inst.append(getRegisterByName(arg1VarName));
+      inst.append(arg1RegName);
       inst.append(", ");
-      inst.append(getRegisterByName(arg2VarName));
+      inst.append(arg2RegName);
     }
     _mips.add(inst.toString());
   }
@@ -257,6 +270,7 @@ public class CodeGenerator implements IRVisitor {
 
   private void clearRegisterMap()
   {
+    printRegisterMap();
     _registerMap = new HashMap<String,String>();
     _nextTempReg = 8;
     _nextIntermediateValue = 0;
@@ -384,12 +398,22 @@ public class CodeGenerator implements IRVisitor {
   {
     String arg1VarName = n.getArg1().getName();
     StringBuilder inst = new StringBuilder();
+    if (n.getArg1() instanceof ConstantSymbol)
+    {
+      inst.append("li ");
+      inst.append(getParamRegister());
+      inst.append(", ");
+      inst.append(((ConstantSymbol)n.getArg1()).getValue());
+    }
+    else
+    {
       inst.append("add ");
       inst.append(getParamRegister());
       inst.append(", ");
       inst.append(getRegisterByName(arg1VarName));
       inst.append(", $zero");
-      _mips.add(inst.toString());
+    }
+    _mips.add(inst.toString());
   }
 
   public void visit(IRReturn n)
@@ -431,6 +455,7 @@ public class CodeGenerator implements IRVisitor {
 
   public void printRegisterMap()
   {
+    System.out.println("----- REGISTER MAP -----");
     for(String key : _registerMap.keySet())
     {
       System.out.println(key + " : " + _registerMap.get(key));

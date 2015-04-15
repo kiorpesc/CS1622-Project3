@@ -57,13 +57,15 @@ public class ConstantFolder implements IRVisitor
                     constantType = new IntegerType();
                     break;
                 case "&&":
-                    constant = "" + (Boolean.parseBoolean(value1) && Boolean.parseBoolean(value2));
+                    /*constant = "" + (Boolean.parseBoolean(value1) && Boolean.parseBoolean(value2));
                     constantType = new BooleanType();
-                    break;
+                    break;*/
+                    return;
                 case "<":
-                    constant = "" + (Integer.parseInt(value1) < Integer.parseInt(value2));
+                    /*constant = "" + (Integer.parseInt(value1) < Integer.parseInt(value2));
                     constantType = new BooleanType();
-                    break;
+                    break;*/
+                    return;
 
                 default:
                     throw new IllegalArgumentException("unexpected operator in assignment");
