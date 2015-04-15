@@ -26,7 +26,7 @@ public class ConstantPropagator
         for (Integer statementIndex : copyIndices)
         {
             IRQuadruple irq = irList.get(statementIndex);
-            ControlFlowGraph cfg = getCFGFromStatement(cfgs, irq);
+            ControlFlowGraph cfg = CFGUtility.getCFGFromStatement(cfgs, irq);
             Set<IRQuadruple> reducibles = getReducibleStatements(cfg, irq);
 
             _optimized = propagateConstant(irList, irq, reducibles);
@@ -43,7 +43,6 @@ public class ConstantPropagator
     private boolean propagateConstant(List<IRQuadruple> irList, IRQuadruple constCopy, Set<IRQuadruple> reducibles)
     {
         // first, remove the copy from the IR
-        //irList.remove(constCopy);
         SymbolInfo removed = constCopy.getResult();
         SymbolInfo constant = constCopy.getArg1();
 
@@ -76,40 +75,15 @@ public class ConstantPropagator
         return (irq instanceof IRCopy) && (irq.getArg1() instanceof ConstantSymbol);
     }
 
-    // gets the CFG that contains the IR statement
-    private ControlFlowGraph getCFGFromStatement(List<ControlFlowGraph> cfgs, IRQuadruple irq)
-    {
-        for (ControlFlowGraph g : cfgs)
-        {
-            for (BasicBlock b : g.getAllBlocks())
-            {
-                if (b.contains(irq))
-                    return g;
-            }
-        }
-
-        throw new IllegalArgumentException("statement not found in any CFG");
-    }
-
-    // gets the BasicBlock that contains the IRStatement
-    private BasicBlock getBasicBlockFromStatement(ControlFlowGraph graph, IRQuadruple irq)
-    {
-        for (BasicBlock b : graph.getAllBlocks())
-        {
-            if (b.contains(irq))
-                return b;
-        }
-        throw new IllegalArgumentException("statement not found in any BasicBlock");
-    }
-
     // collect all of the IRQuadruple statements that the constant could be propagated to
     private Set<IRQuadruple> getReducibleStatements(ControlFlowGraph graph, IRQuadruple origDef)
     {
-        BasicBlock start = getBasicBlockFromStatement(graph, origDef);
+        BasicBlock start = CFGUtility.getBasicBlockFromStatement(graph, origDef);
 
         Set<IRQuadruple> reducibles = new HashSet<IRQuadruple>();
 
         // get reducible statements from the current block
+        // start at the statement immediately after ours
         for (int i = start.indexOf(origDef) + 1; i < start.size(); ++i)
         {
             IRQuadruple next = start.getStatement(i);
@@ -194,15 +168,9 @@ public class ConstantPropagator
         return false;
     }
 
-    // determine if a statement is a definition of the candidate
-    private boolean isDefOf(IRQuadruple irq, SymbolInfo candidate)
-    {
-        return !(irq instanceof IRArrayAssign) && irq.getResult() == candidate;
-    }
-
     private boolean isConflictingDef(IRQuadruple def, IRQuadruple origDef)
     {
-        return (def != origDef && isDefOf(def, origDef.getResult()));
+        return (def != origDef && def.isDefOf(origDef.getResult()));
     }
 
     // returns true iff b contains a definition that conflicts with origDef

@@ -49,6 +49,16 @@ public abstract class IRQuadruple {
     return _result;
   }
 
+  public boolean isDefOf(SymbolInfo sym)
+  {
+    return sym == _result;
+  }
+
+  public boolean isUsageOf(SymbolInfo sym)
+  {
+    return _arg1 == sym || _arg2 == sym;
+  }
+
   // replace the arguments with replaceWith, if any of them are
   // toReplace.
   public boolean replaceArgs(SymbolInfo toReplace, SymbolInfo replaceWith)

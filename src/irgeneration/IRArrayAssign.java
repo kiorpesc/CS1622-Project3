@@ -21,6 +21,16 @@ public class IRArrayAssign extends IRQuadruple{
       return output.toString();
   }
 
+  public boolean isDefOf(SymbolInfo sym)
+  {
+    return false;
+  }
+
+  public boolean isUsageOf(SymbolInfo sym)
+  {
+    return super.isUsageOf(sym) || _result == sym;
+  }
+
   public void accept(IRVisitor g)
   {
     g.visit(this);

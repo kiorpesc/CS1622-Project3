@@ -61,13 +61,15 @@ public class MiniJavaCompiler
         // TODO: control this with command line flag
         ConstantFolder folder = new ConstantFolder(irList);
         ConstantPropagator prop = new ConstantPropagator(irList, cfgBuilder.getControlFlowGraphs());
+        DeadCodeEliminator elim = new DeadCodeEliminator(cfgBuilder.getControlFlowGraphs(), irList);
 
-        while (folder.wasOptimized() || prop.wasOptimized())
+        while (folder.wasOptimized() || prop.wasOptimized() || elim.wasOptimized())
         {
             System.out.println("repeating optimization");
             cfgBuilder = new ControlFlowGraphBuilder(irList);
             prop = new ConstantPropagator(irList, cfgBuilder.getControlFlowGraphs());
             folder = new ConstantFolder(irList);
+            elim = new DeadCodeEliminator(cfgBuilder.getControlFlowGraphs(), irList);
         }
 
         System.out.println("----- OPTIMIZED IR -----");
