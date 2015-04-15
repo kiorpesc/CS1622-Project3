@@ -43,6 +43,13 @@ public class InterferenceGraph {
     private void processLiveSet(Set<SymbolInfo> liveSet)
     {
       Object[] liveArray = liveSet.toArray();
+
+      // if there are no interferences, we still need to allocate for the variable
+      if(liveArray.length == 1)
+      {
+        _graph.put((SymbolInfo)liveArray[0], new HashSet<SymbolInfo>());
+      }
+
       for(int i = 0; i < liveArray.length - 1; i++)
       {
         SymbolInfo symA = (SymbolInfo)liveArray[i];
@@ -103,10 +110,11 @@ public class InterferenceGraph {
       StringBuilder output = new StringBuilder("========== INTERFERENCES: =========\n");
       for(SymbolInfo key : _graph.keySet())
       {
-        output.append("NODE:    ");
+        output.append("NODE: ");
         output.append(key.getName());
-        output.append(" ::: ");
-        output.append(_graph.get(key));
+        output.append("  :::  ");
+        for(SymbolInfo n : _graph.get(key))
+          output.append(n.getName() + ", ");
         output.append("\n");
       }
       return output.toString();
