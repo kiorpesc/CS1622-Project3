@@ -8,6 +8,7 @@ import semanticanalysis.*;
 import symboltable.*;
 import syntaxtree.*;
 import visitor.*;
+import regalloc.*;
 
 public class MiniJavaCompiler
 {
@@ -55,6 +56,17 @@ public class MiniJavaCompiler
 
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irGenerator.getIRList());
         // TODO: register allocation
+
+        for(ControlFlowGraph cfg : cfgBuilder.getControlFlowGraphs())
+        {
+          LivenessAnalysis la = new LivenessAnalysis(cfg);
+          System.out.println(la);
+
+          InterferenceGraphBuilder igb = new InterferenceGraphBuilder(la, cfg);
+          System.out.println(igb);
+        }
+
+
 
         CodeGenerator codeGenerator = new CodeGenerator(irGenerator.getIRList());
         codeGenerator.generateCode();

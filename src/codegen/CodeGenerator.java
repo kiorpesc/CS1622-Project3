@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class CodeGenerator implements IRVisitor {
 
-  //private Stack<HashMap<String, String>> _jumpMap;
+  // needs to be <SymbolInfo, String>
   private HashMap<String, String> _registerMap;
   private int _nextIntermediateValue;
   private int _nextTempReg;
