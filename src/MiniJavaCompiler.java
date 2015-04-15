@@ -59,7 +59,7 @@ public class MiniJavaCompiler
 
         // optimizations!
         List<IRQuadruple> irList = irGenerator.getIRList();
-        if (optimize)
+        if (_optimize)
         {
             irList = runOptimizations(irList);
             System.out.println("----- OPTIMIZED IR -----");
@@ -90,20 +90,20 @@ public class MiniJavaCompiler
         return argsList.toArray(new String[0]);
     }
 
-    private List<IRQuadruple> runOptimizations(List<IRQuadruple> irList)
+    private static List<IRQuadruple> runOptimizations(List<IRQuadruple> irList)
     {
         IROptimizer optimizer = new IROptimizer(irList);
         optimizer.optimize();
-        return = optimizer.getOptimizedIR();
+        return optimizer.getOptimizedIR();
     }
 
-    private static Program parseProgram(String sourceFileName)
+    private static Program parseProgram(String sourceFileName) throws Exception
     {
-        MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
+        MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(sourceFileName)));
         return (Program)parser.parse().value;
     }
 
-    private ISymbolTable buildSymbolTableAndCheckErrors(Program program, List<ErrorChecker> errorCheckers)
+    private static ISymbolTable buildSymbolTableAndCheckErrors(Program program, List<ErrorChecker> errorCheckers)
     {
         // build symbol table
         BuildSymbolTableVisitor symbolTableBuilder = new BuildSymbolTableVisitor();
