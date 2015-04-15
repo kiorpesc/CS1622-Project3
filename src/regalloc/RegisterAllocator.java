@@ -1,6 +1,6 @@
 package regalloc;
 
-public class InterferenceGraphColorizer {
+public class RegisterAllocator {
 
   private Stack<SymbolInfo> _nodeStack;
   private Set<SymbolInfo> _nodes;
@@ -10,7 +10,7 @@ public class InterferenceGraphColorizer {
   private int _numRegisters;
   private int _nextColor;
 
-  public InterferenceGraphColorizer(InterferenceGraph graph, int numRegs)
+  public RegisterAllocator(InterferenceGraph graph, int numRegs)
   {
     _nodeStack = new Stack<SymbolInfo>();
     _nodes = graph.getNodes();
@@ -26,7 +26,9 @@ public class InterferenceGraphColorizer {
   public void colorize()
   {
     // simplify
+    simplify();
     // select
+    select();
   }
 
   private void simplify()
@@ -62,7 +64,7 @@ public class InterferenceGraphColorizer {
       nextToAdd = _nodeStack.pop();
 
       // check color of all neighbors
-      int color = getColor(nextToAdd);
+      int color = getNewRegColor(nextToAdd);
       if(color < 0) // this means no safe color was found
       {
         // ACTUAL SPILL - need to rewrite source code IR
@@ -80,7 +82,7 @@ public class InterferenceGraphColorizer {
     }
   }
 
-  private int getColor(SymbolInfo node)
+  private int getNewRegColor(SymbolInfo node)
   {
     boolean safeColor = false;
     // check each adjacent node
@@ -110,5 +112,18 @@ public class InterferenceGraphColorizer {
         return sym;
     }
     return null;
+  }
+
+  public String printAllocations()
+  {
+    StringBuilder output = new StringBuilder("============ Register Allocations ==========\n")
+    for(SymbolInfo node : _nodes)
+    {
+      output.append(node.getName());
+      output.append(" : $");
+      output.append(_colors.get(node));
+      output.append("\n");
+    }
+    return output;
   }
 }
