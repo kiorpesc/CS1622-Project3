@@ -66,6 +66,7 @@ public class MiniJavaCompiler
           System.out.println(ig);
 
           RegisterAllocator regAlloc = new RegisterAllocator(ig, 9);
+          System.out.println(regAlloc);
         }
 
 

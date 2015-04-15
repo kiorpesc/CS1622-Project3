@@ -94,7 +94,8 @@ public class InterferenceGraph {
 
     public Set<SymbolInfo> getInterferences(SymbolInfo a)
     {
-      return _graph.get(a);
+      Set<SymbolInfo> interferences = _graph.get(a);
+      return interferences;
     }
 
     public String toString()

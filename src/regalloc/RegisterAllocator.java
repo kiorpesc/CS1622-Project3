@@ -1,5 +1,12 @@
 package regalloc;
 
+import symboltable.*;
+import java.util.Set;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Stack;
+
 public class RegisterAllocator {
 
   private Stack<SymbolInfo> _nodeStack;
@@ -13,11 +20,11 @@ public class RegisterAllocator {
   public RegisterAllocator(InterferenceGraph graph, int numRegs)
   {
     _nodeStack = new Stack<SymbolInfo>();
-    _nodes = graph.getNodes();
+    _nodes = new HashSet(graph.getNodes()); // make a copy of the keySet
     _colors = new HashMap<SymbolInfo, Integer>();
     _spills = new HashSet<SymbolInfo>();
     _graph = graph;
-    _numRegs = numRegs;
+    _numRegisters = numRegs;
     _nextColor = 0;
 
     colorize();
@@ -27,8 +34,18 @@ public class RegisterAllocator {
   {
     // simplify
     simplify();
+    printNodeStack();
     // select
     select();
+  }
+
+  private void printNodeStack()
+  {
+    System.out.println("Printing node stack ........");
+    for(SymbolInfo node : _nodeStack)
+    {
+      System.out.println(node);
+    }
   }
 
   private void simplify()
@@ -41,8 +58,10 @@ public class RegisterAllocator {
       // first, remove interferences to other nodes (without removing them from the node itself)
       for(SymbolInfo nodeA : _graph.getInterferences(nextToRemove))
         _graph.removeInterference(nodeA, nextToRemove);
-      _nodes.remove(nextToRemove);  // remove it from the list
+
       _nodeStack.push(nextToRemove); // push to the stack
+      _nodes.remove(nextToRemove);  // remove it from the list
+
 
       // pick next node
       nextToRemove = getInsignificantNode();
@@ -72,10 +91,11 @@ public class RegisterAllocator {
         // remove register from spills list, give color
         _spills.remove(nextToAdd);
         _colors.put(nextToAdd, color);
+        _nodes.add(nextToAdd);
       }
 
       // TODO: should this be done for spills, or are they now ALWAYS in mem and therefore not on the graph?
-      for(SymbolInfo nodeA : _graph.getInterferences(nextToAdd));
+      for(SymbolInfo nodeA : _graph.getInterferences(nextToAdd))
       {
         _graph.addInterference(nodeA, nextToAdd);
       }
@@ -84,12 +104,17 @@ public class RegisterAllocator {
 
   private int getNewRegColor(SymbolInfo node)
   {
+    Set<SymbolInfo> interferences = _graph.getInterferences(node);
+    if(interferences == null){
+      return 0;
+    }
+
     boolean safeColor = false;
     // check each adjacent node
-    for(int reg = 0; reg < _numRegisters; i++)
+    for(int reg = 0; reg < _numRegisters; reg++)
     {
       safeColor = true;
-      for(SymbolInfo adjNode : _graph.getInterferences(node))
+      for(SymbolInfo adjNode : interferences)
       {
         if(reg == _colors.get(adjNode)){
           safeColor = false;
@@ -108,15 +133,15 @@ public class RegisterAllocator {
   {
     for(SymbolInfo sym : _nodes)
     {
-      if(_graph.getDegree(sym) < _numRegs)
+      if(_graph.getDegree(sym) < _numRegisters)
         return sym;
     }
     return null;
   }
 
-  public String printAllocations()
+  public String toString()
   {
-    StringBuilder output = new StringBuilder("============ Register Allocations ==========\n")
+    StringBuilder output = new StringBuilder("============ Register Allocations ==========\n");
     for(SymbolInfo node : _nodes)
     {
       output.append(node.getName());
@@ -124,6 +149,6 @@ public class RegisterAllocator {
       output.append(_colors.get(node));
       output.append("\n");
     }
-    return output;
+    return output.toString();
   }
 }
