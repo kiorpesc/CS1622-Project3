@@ -23,6 +23,11 @@ public class BasicBlock
         return _statements.isEmpty();
     }
 
+    public boolean contains(IRQuadruple irq)
+    {
+        return _statements.contains(irq);
+    }
+
     public List<IRQuadruple> getStatements()
     {
         return _statements;
@@ -47,6 +52,21 @@ public class BasicBlock
         addTabs(result, tabLevel);
         result.append("]\n");
         return result.toString();
+    }
+
+    public int indexOf(IRQuadruple irq)
+    {
+        return _statements.indexOf(irq);
+    }
+
+    public int size()
+    {
+        return _statements.size();
+    }
+
+    public IRQuadruple getStatement(int index)
+    {
+        return _statements.get(index);
     }
 
     private void addTabs(StringBuilder s, int tabLevel)

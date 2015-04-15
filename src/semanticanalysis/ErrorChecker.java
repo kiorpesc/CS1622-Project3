@@ -11,6 +11,11 @@ public abstract class ErrorChecker
         return _errors;
     }
 
+    public boolean hasErrors()
+    {
+        return !_errors.isEmpty();
+    }
+
     protected void addError(String error, int line, int column)
     {
         _errors.add(formatError(error, line, column));

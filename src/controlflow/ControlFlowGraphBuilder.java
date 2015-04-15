@@ -16,6 +16,16 @@ public class ControlFlowGraphBuilder implements IRVisitor
     {
         for (IRQuadruple irq : irList)
             irq.accept(this);
+
+        if (!_currentBlock.isEmpty())
+        {
+            _currentCfg.addBlock(_currentBlock);
+            finalizeCfg(_currentCfg);
+            _controlFlowGraphs.add(_currentCfg);
+        }
+
+        _currentCfg = null;
+        _currentBlock = null;
     }
 
     public List<ControlFlowGraph> getControlFlowGraphs()
