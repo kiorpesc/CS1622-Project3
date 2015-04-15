@@ -12,65 +12,119 @@ import visitor.*;
 
 public class MiniJavaCompiler
 {
+    private static boolean _optimize = false;
+
     public static void main(String[] args) throws Exception
     {
-        String outputFileName = "test.asm";
         if (args.length < 2)
         {
             System.err.println("usage: java NameAnalysisTest <input-file> <output-file>");
             System.exit(1);
         }
 
-        MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
-        outputFileName = args[1];
+        args = parseFlags(args);
 
-        Program program = (Program)parser.parse().value;
+        // parse the program
+        Program program = parseProgram(args[0]);
 
-        BuildSymbolTableVisitor symbolTableBuilder = new BuildSymbolTableVisitor();
-        symbolTableBuilder.visit(program);
+        // build symbol table and check for semantic errors
+        List<ErrorChecker> errorCheckers = new ArrayList<ErrorChecker>();
+        ISymbolTable symbolTable = buildSymbolTableAndCheckErrors(program, errorCheckers);
 
-        ISymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
+        // loop over error checkers, printing out each error
+        boolean failed = false;
+        for (ErrorChecker checker : errorCheckers)
+        {
+            if (checker.hasErrors())
+            {
+                failed = true;
+                for (String error : checker.getErrors())
+                {
+                    System.out.println(error);
+                }
+            }
 
-        for (String error : symbolTableBuilder.getErrors())
-            System.out.println(error);
-
-        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
-        nameAnalysis.visit(program);
-        for (String error : nameAnalysis.getErrors())
-            System.out.println(error);
-
-        TypeCheckVisitor typeChecker = new TypeCheckVisitor(symbolTable);
-        typeChecker.visit(program);
-        for (String error : typeChecker.getErrors())
-            System.out.println(error);
-
-        if(!(typeChecker.getErrors().isEmpty() && nameAnalysis.getErrors().isEmpty() && symbolTableBuilder.getErrors().isEmpty()))
+        }
+        // exit if errors are encountered.
+        if (failed)
         {
             System.out.println("Errors encountered, cannot generate IR.");
             return;
         }
 
+        // generate IR (3-address code)
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
         irGenerator.printIRList();
 
         // optimizations!
         List<IRQuadruple> irList = irGenerator.getIRList();
-        IROptimizer optimizer = new IROptimizer(irList);
-        optimizer.optimize();
-        irList = optimizer.getOptimizedIR();
-
-        System.out.println("----- OPTIMIZED IR -----");
-        for (IRQuadruple irq : irList)
+        if (optimize)
         {
-            System.out.println(irq);
+            irList = runOptimizations(irList);
+            System.out.println("----- OPTIMIZED IR -----");
+            for (IRQuadruple irq : irList)
+            {
+                System.out.println(irq);
+            }
         }
 
         // TODO: register allocation
         CodeGenerator codeGenerator = new CodeGenerator(irList);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
+        String outputFileName = args[1];
         System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----");
         codeGenerator.outputMIPSFile(outputFileName); //TODO: make this an argument
     }
+
+    private static String[] parseFlags(String[] args)
+    {
+        List<String> argsList = new ArrayList<String>(Arrays.asList(args));
+
+        if (argsList.contains("-O1"))
+        {
+            _optimize = true;
+            argsList.remove("-O1");
+        }
+        return argsList.toArray(new String[0]);
+    }
+
+    private List<IRQuadruple> runOptimizations(List<IRQuadruple> irList)
+    {
+        IROptimizer optimizer = new IROptimizer(irList);
+        optimizer.optimize();
+        return = optimizer.getOptimizedIR();
+    }
+
+    private static Program parseProgram(String sourceFileName)
+    {
+        MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileReader(args[0])));
+        return (Program)parser.parse().value;
+    }
+
+    private ISymbolTable buildSymbolTableAndCheckErrors(Program program, List<ErrorChecker> errorCheckers)
+    {
+        // build symbol table
+        BuildSymbolTableVisitor symbolTableBuilder = new BuildSymbolTableVisitor();
+        symbolTableBuilder.visit(program);
+
+        ISymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
+
+        // do name analysis (undefined references)
+        NameAnalysisVisitor nameAnalysis = new NameAnalysisVisitor(symbolTable);
+        nameAnalysis.visit(program);
+
+        // do type checking
+        TypeCheckVisitor typeChecker = new TypeCheckVisitor(symbolTable);
+        typeChecker.visit(program);
+
+        // aggregate our error checkers
+        errorCheckers.add(symbolTableBuilder);
+        errorCheckers.add(nameAnalysis);
+        errorCheckers.add(typeChecker);
+
+        return symbolTable;
+    }
+
 }

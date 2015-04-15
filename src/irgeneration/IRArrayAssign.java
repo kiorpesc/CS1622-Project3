@@ -21,6 +21,19 @@ public class IRArrayAssign extends IRQuadruple{
       return output.toString();
   }
 
+  public boolean replaceArgs(SymbolInfo toReplace, SymbolInfo replaceWith)
+  {
+    boolean changed = super.replaceArgs(toReplace, replaceWith);
+
+    if (_result == toReplace)
+    {
+      changed = true;
+      _result = replaceWith;
+    }
+
+    return changed;
+  }
+
   public boolean isDefOf(SymbolInfo sym)
   {
     return false;

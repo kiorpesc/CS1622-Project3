@@ -29,7 +29,8 @@ public class ConstantPropagator
             ControlFlowGraph cfg = CFGUtility.getCFGFromStatement(cfgs, irq);
             Set<IRQuadruple> reducibles = getReducibleStatements(cfg, irq);
 
-            _optimized = propagateConstant(irList, irq, reducibles);
+            if (propagateConstant(irList, irq, reducibles))
+                _optimized = true;
         }
     }
 
@@ -54,14 +55,6 @@ public class ConstantPropagator
 
             if (!reducibles.contains(next))
                 continue;
-
-            // need to handle ArrayAssign specially, since the result is
-            // actually the rhs of the statement.
-            if (next instanceof IRArrayAssign && next.getResult() == removed)
-            {
-                next = new IRArrayAssign(next.getArg1(), next.getArg2(), constant);
-                result = true;
-            }
 
             if (next.replaceArgs(removed, constant))
                 result = true;

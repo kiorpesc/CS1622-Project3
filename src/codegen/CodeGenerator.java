@@ -80,6 +80,9 @@ public class CodeGenerator implements IRVisitor {
 
   private String generateMove(String dest, String source)
   {
+    if (dest.equals(source))
+      return "";
+
     return generateInstruction("add", dest, source, "$zero");
   }
 
@@ -143,13 +146,16 @@ public class CodeGenerator implements IRVisitor {
   public void visit(IRArrayAssign n)
   {
     // TODO: handle constants
-    String resultReg = getRegisterByName(n.getResult().getName());
-    String arrayReg = getRegisterByName(n.getArg1().getName());
-    String indexReg = getRegisterByName(n.getArg2().getName());
-
     StringBuilder inst = new StringBuilder();
 
-    String tempReg = getRegisterByName(getIntermediateName());
+    String arrayReg = getRegisterByName(n.getArg1().getName());
+
+    // index might be literal, so get a (possibly temp) register
+    String indexReg = getRegisterForValue(inst, n.getArg2());
+
+    // hack: we actually need two additional registers for an array assignment;
+    // one to hold the calculated address, and one to hold the variable to assign
+    String tempReg = "$t9";
 
     // move index into temporary register
     inst.append(generateMove(tempReg, indexReg));
@@ -159,6 +165,9 @@ public class CodeGenerator implements IRVisitor {
     inst.append(generateInstruction("sll", tempReg, tempReg, "2"));
     // add index to array address
     inst.append(generateInstruction("add", tempReg, arrayReg, tempReg));
+
+    // get our result
+    String resultReg = getRegisterForValue(inst, n.getResult());
 
     // store the result register into the array
     inst.append("sw ");
@@ -191,13 +200,13 @@ public class CodeGenerator implements IRVisitor {
   public void visit(IRArrayLookup n)
   {
     //TODO: handle constants
+    StringBuilder inst = new StringBuilder();
     String resultReg = getRegisterByName(n.getResult().getName());
     String arrayReg = getRegisterByName(n.getArg1().getName());
-    String indexReg = getRegisterByName(n.getArg2().getName());
 
-    String tempReg = getRegisterByName(getIntermediateName());
+    String indexReg = getRegisterForValue(inst, n.getArg2());
 
-    StringBuilder inst = new StringBuilder();
+    String tempReg = "$v1";
 
     // move index into temporary register
     inst.append(generateMove(tempReg, indexReg));
@@ -381,16 +390,21 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRNewArray n)
   {
+    StringBuilder inst = new StringBuilder();
     // get register for the result of the new
     String resultReg = getRegisterByName(n.getResult().getName());
     // get register that holds the size value
-    String sizeReg = getRegisterByName(n.getArg2().getName());
+    String sizeReg = getRegisterForValue(inst, n.getArg2());
 
-    StringBuilder inst = new StringBuilder();
     // left shift size by 2 (multiplies by 4) and store in the argument register
     inst.append(generateInstruction("sll", getParamRegister(), sizeReg, "2"));
+
+    // HACK: _new_array routine clobbers $t0 and $t1 and we don't have
+    // saving working properly, so just save/load them for now.
+    inst.append("addi $sp, $sp, -8\nsw $t0, 4($sp)\nsw $t1, 0($sp)\n");
     // jump to the new array routine
     inst.append("jal _new_array\n");
+    inst.append("lw $t0, 4($sp)\nlw $t1, 0($sp)\naddi $sp, $sp, 8\n");
     // move the address to the result register
     inst.append(generateMove(resultReg, "$v0"));
 
