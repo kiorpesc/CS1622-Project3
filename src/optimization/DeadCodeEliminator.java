@@ -11,7 +11,7 @@ public class DeadCodeEliminator
 
     private boolean _optimized = false;
 
-    public DeadCodeEliminator(List<ControlFlowGraph> graphs, List<IRQuadruple> irList)
+    public DeadCodeEliminator(List<IRQuadruple> irList, List<ControlFlowGraph> graphs)
     {
         Set<IRQuadruple> removable = new HashSet<IRQuadruple>();
 
