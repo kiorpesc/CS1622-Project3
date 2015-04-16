@@ -62,44 +62,62 @@ public class ControlFlowGraphBuilder implements IRVisitor
         // clear out the mapping between labels and blocks
         _labelsToBlocks.clear();
     }
+
+    private BasicBlock endBlock()
+    {
+        _currentCfg.addBlock(_currentBlock);
+        BasicBlock previous = _currentBlock;
+        _currentBlock = new BasicBlock();
+        return previous;
+    }
+
+    private void addEdgeFrom(BasicBlock previous)
+    {
+        _currentCfg.addEdge(previous, _currentBlock);
+    }
+
+    private void endBlockAndAddEdge()
+    {
+        BasicBlock previous = endBlock();
+        addEdgeFrom(previous);
+    }
+
     public void visit(IRArrayAssign n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRArrayLength n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRArrayLookup n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRAssignment n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRCall n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRCondJump n)
     {
         // just add the statement, we'll add an edge for the jump
         // later.
         _currentBlock.addStatement(n);
-        _currentCfg.addBlock(_currentBlock);
-
-        // end the current block
-        BasicBlock previous = _currentBlock;
-        _currentBlock = new BasicBlock();
-
-        // add an edge from the previous block to the current one
-        // to account for fallthrough.
-        _currentCfg.addEdge(previous, _currentBlock);
+        endBlockAndAddEdge();
     }
     public void visit(IRCopy n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRLabel n)
     {
@@ -108,9 +126,7 @@ public class ControlFlowGraphBuilder implements IRVisitor
         {
             // save the current block, since a label is always the target
             // of a branch or jump
-            _currentCfg.addBlock(_currentBlock);
-            BasicBlock previous = _currentBlock;
-            _currentBlock = new BasicBlock();
+            BasicBlock previous = endBlock();
 
             if (n.isMethod())
             {
@@ -124,7 +140,7 @@ public class ControlFlowGraphBuilder implements IRVisitor
             {
                 // non-method label
                 // add edge from previous block to the next block
-                _currentCfg.addEdge(previous, _currentBlock);
+                addEdgeFrom(previous);
             }
 
         }
@@ -134,14 +150,17 @@ public class ControlFlowGraphBuilder implements IRVisitor
     public void visit(IRNewArray n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRNewObject n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRParam n)
     {
         _currentBlock.addStatement(n);
+        endBlockAndAddEdge();
     }
     public void visit(IRReturn n)
     {
@@ -157,17 +176,14 @@ public class ControlFlowGraphBuilder implements IRVisitor
     public void visit(IRUnaryAssignment n)
     {
         _currentBlock.addStatement(n);
+        endBlock();
     }
     public void visit(IRUncondJump n)
     {
         // just add the statement, we'll add an edge for the jump
         // later.
         _currentBlock.addStatement(n);
-        _currentCfg.addBlock(_currentBlock);
-
-        // end the current block
-        BasicBlock previous = _currentBlock;
-        _currentBlock = new BasicBlock();
+        endBlock();
 
         // no need to add a successor edge for fallthrough,
         // since the jump is unconditional it will always be taken.
