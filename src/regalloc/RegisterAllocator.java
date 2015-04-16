@@ -34,7 +34,7 @@ public class RegisterAllocator {
   {
     // simplify
     simplify();
-    printNodeStack();
+    //printNodeStack();
     // select
     select();
   }
@@ -151,4 +151,15 @@ public class RegisterAllocator {
     }
     return output.toString();
   }
+
+  public int getRegister(SymbolInfo var)
+  {
+    return _colors.get(var);
+  }
+
+  public Map<SymbolInfo, Integer> getColors()
+  {
+    return _colors;
+  }
+
 }

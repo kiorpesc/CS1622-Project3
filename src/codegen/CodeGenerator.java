@@ -1,5 +1,6 @@
 package codegen;
 
+import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Stack;
 
 import irgeneration.*;
 import symboltable.*;
+import regalloc.*;
 
 import java.io.*;
 import java.util.Scanner;
@@ -21,8 +23,10 @@ public class CodeGenerator implements IRVisitor {
   private int _currentParam;
   private List<String> _mips;
   private List<IRQuadruple> _irList;
+  private Map<SymbolInfo, Integer> _regAllocator;
+  private int _minRegister;
 
-  public CodeGenerator(List<IRQuadruple> irList)
+  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, Integer> regAlloc)
   {
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
@@ -32,6 +36,8 @@ public class CodeGenerator implements IRVisitor {
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
+    _regAllocator = regAlloc;
+    _minRegister = 8;  // right now hard coding lowest register
   }
 
   private String getIntermediateName()
@@ -66,6 +72,14 @@ public class CodeGenerator implements IRVisitor {
     String regName = "$"+_nextTempReg++;
     _registerMap.put(varName, regName);
     return regName;
+  }
+
+  private String getAllocatedRegister(SymbolInfo var)
+  {
+    int regColor = _regAllocator.get(var);
+    regColor += _minRegister;
+    String regString = "$" + regColor;
+    return regString;
   }
 
   private String getParamRegister()
@@ -148,7 +162,7 @@ public class CodeGenerator implements IRVisitor {
     // TODO: handle constants
     StringBuilder inst = new StringBuilder();
 
-    String arrayReg = getRegisterByName(n.getArg1().getName());
+    String arrayReg = getAllocatedRegister(n.getArg1());
 
     // index might be literal, so get a (possibly temp) register
     String indexReg = getRegisterForValue(inst, n.getArg2());
@@ -181,8 +195,8 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRArrayLength n)
   {
-    String resultReg = getRegisterByName(n.getResult().getName());
-    String arrayReg = getRegisterByName(n.getArg1().getName());
+    String resultReg = getAllocatedRegister(n.getResult());
+    String arrayReg = getAllocatedRegister(n.getArg1());
 
     StringBuilder inst = new StringBuilder();
     // load a word
@@ -201,8 +215,8 @@ public class CodeGenerator implements IRVisitor {
   {
     //TODO: handle constants
     StringBuilder inst = new StringBuilder();
-    String resultReg = getRegisterByName(n.getResult().getName());
-    String arrayReg = getRegisterByName(n.getArg1().getName());
+    String resultReg = getAllocatedRegister(n.getResult());
+    String arrayReg = getAllocatedRegister(n.getArg1());
 
     String indexReg = getRegisterForValue(inst, n.getArg2());
 
@@ -274,7 +288,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", ");
       inst.append(arg2RegName);
       inst.append("\nmflo ");
-      inst.append(getRegisterByName(resultVarName));
+      inst.append(getAllocatedRegister(n.getResult()));
     } else {
 
       switch(n.getOp()) {
@@ -286,7 +300,7 @@ public class CodeGenerator implements IRVisitor {
                  break;
         case "<"  : inst.append("slt ");
       }
-      inst.append(getRegisterByName(resultVarName));
+      inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
       inst.append(arg1RegName);
       inst.append(", ");
@@ -317,15 +331,12 @@ public class CodeGenerator implements IRVisitor {
     // now need to get result of call
     if(n.getResult() != null)
     {
-      String v0Reg = getRegisterByName(n.getResult().getName());
+      String v0Reg = getAllocatedRegister(n.getResult());
       inst = new StringBuilder("add ");
       inst.append(v0Reg);
       inst.append(", $v0, $zero");
       _mips.add(inst.toString());
     }
-
-
-
   }
 
   public void visit(IRCondJump n)
@@ -346,14 +357,14 @@ public class CodeGenerator implements IRVisitor {
     if(n.getArg1().getSymbolType() == "constant")
     {
       inst.append("li ");
-      inst.append(getRegisterByName(n.getResult().getName()));
+      inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
       inst.append(n.getArg1().getName());
     } else {
       inst.append("add ");
-      inst.append(getRegisterByName(n.getResult().getName()));
+      inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
-      inst.append(getRegisterByName(n.getArg1().getName()));
+      inst.append(getAllocatedRegister(n.getArg1()));
       inst.append(", $zero");
     }
 
@@ -374,12 +385,13 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", $a0, $zero");
       _mips.add(inst.toString());
 
-      ArrayList<String> formals = n.getMethod().getFormalNames();
+      MethodSymbol method = n.getMethod();
+      ArrayList<String> formals = method.getFormalNames();
 
       for(int i = 0; i < formals.size(); i++)
       {
         inst = new StringBuilder("add ");
-        inst.append(getRegisterByName(formals.get(i)));
+        inst.append(getAllocatedRegister(method.getVariable(formals.get(i))));
         inst.append(", $a");
         inst.append((i+1));
         inst.append(", $zero");
@@ -392,7 +404,7 @@ public class CodeGenerator implements IRVisitor {
   {
     StringBuilder inst = new StringBuilder();
     // get register for the result of the new
-    String resultReg = getRegisterByName(n.getResult().getName());
+    String resultReg = getAllocatedRegister(n.getResult());
     // get register that holds the size value
     String sizeReg = getRegisterForValue(inst, n.getArg2());
 
@@ -416,7 +428,7 @@ public class CodeGenerator implements IRVisitor {
   public void visit(IRNewObject n)
   {
     // reserve space for when new object is implemented
-    String resultReg = getRegisterByName(n.getResult().getName());
+    String resultReg = getAllocatedRegister(n.getResult());
   }
 
   public void visit(IRParam n)
@@ -435,7 +447,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append("add ");
       inst.append(getParamRegister());
       inst.append(", ");
-      inst.append(getRegisterByName(arg1VarName));
+      inst.append(getAllocatedRegister(n.getArg1()));
       inst.append(", $zero");
     }
     _mips.add(inst.toString());
@@ -446,7 +458,7 @@ public class CodeGenerator implements IRVisitor {
     String retName = n.getArg1().getName();
     // store result in $v0
     StringBuilder retInst = new StringBuilder("add $v0, ");
-    retInst.append(getRegisterByName(retName));
+    retInst.append(getAllocatedRegister(n.getArg1()));
     retInst.append(", $zero");
     _mips.add(retInst.toString());
 

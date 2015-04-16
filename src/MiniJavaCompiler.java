@@ -72,19 +72,22 @@ public class MiniJavaCompiler
 
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
 
+        Map<SymbolInfo, Integer> regColors = new HashMap<SymbolInfo, Integer>();
+
         for(ControlFlowGraph cfg : cfgBuilder.getControlFlowGraphs())
         {
           LivenessAnalysis la = new LivenessAnalysis(cfg);
-          System.out.println(la);
+          //System.out.println(la);
 
           InterferenceGraph ig = new InterferenceGraph(la, cfg);
-          System.out.println(ig);
+          //System.out.println(ig);
 
-          RegisterAllocator regAlloc = new RegisterAllocator(ig, 23);
+          RegisterAllocator regAlloc = new RegisterAllocator(ig, 22);
           System.out.println(regAlloc);
+          regColors.putAll(regAlloc.getColors());
         }
 
-        CodeGenerator codeGenerator = new CodeGenerator(irList);
+        CodeGenerator codeGenerator = new CodeGenerator(irList, regColors);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         String outputFileName = args[1];
