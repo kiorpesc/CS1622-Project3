@@ -270,7 +270,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append('\n');
       return "$v1";
     }
-    return getRegisterByName(sym.getName());
+    return getAllocatedRegister(sym);
   }
 
   public void visit(IRAssignment n)
@@ -379,13 +379,14 @@ public class CodeGenerator implements IRVisitor {
       saveAllRegisters();
       clearRegisterMap();
 
+      MethodSymbol method = n.getMethod();
+
       // move arguments into non-argument registers for safety
       StringBuilder inst = new StringBuilder("add ");
-      inst.append(getRegisterByName("this"));
+      inst.append(getAllocatedRegister(method.getVariable("this")));
       inst.append(", $a0, $zero");
       _mips.add(inst.toString());
 
-      MethodSymbol method = n.getMethod();
       ArrayList<String> formals = method.getFormalNames();
 
       for(int i = 0; i < formals.size(); i++)

@@ -146,6 +146,10 @@ public class IRGenVisitor {
   {
     _symbolTable.enterMethod(n.i.s);
 
+    // add this to method variables - shortcut looking up class symbol
+    VariableSymbol thisVar = _symbolTable.getCurrentClass().getVariable("this");
+    _symbolTable.getCurrentMethod().addLocal(thisVar);
+
     _ifCount = 0; // new method means no ifs encountered yet
     _loopCount = 0; // same for loops
     _loopEndCount = 0; // and their ends
