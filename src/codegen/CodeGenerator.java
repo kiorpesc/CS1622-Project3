@@ -76,7 +76,10 @@ public class CodeGenerator implements IRVisitor {
 
   private String getAllocatedRegister(SymbolInfo var)
   {
-    int regColor = _regAllocator.get(var);
+    Integer regColor = _regAllocator.get(var);
+    if(regColor == null)
+      return null;
+
     regColor += _minRegister;
     String regString = "$" + regColor;
     return regString;
@@ -382,10 +385,15 @@ public class CodeGenerator implements IRVisitor {
       MethodSymbol method = n.getMethod();
 
       // move arguments into non-argument registers for safety
-      StringBuilder inst = new StringBuilder("add ");
-      inst.append(getAllocatedRegister(method.getVariable("this")));
-      inst.append(", $a0, $zero");
-      _mips.add(inst.toString());
+      StringBuilder inst;
+      VariableSymbol thisVar = method.getVariable("this");
+      String thisReg = getAllocatedRegister(thisVar);
+      if(thisReg != null) {
+        inst = new StringBuilder("add ");
+        inst.append(thisReg);
+        inst.append(", $a0, $zero");
+        _mips.add(inst.toString());
+      }
 
       ArrayList<String> formals = method.getFormalNames();
 

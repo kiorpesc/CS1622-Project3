@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -cp "lib/java-cup-11a.jar:src/" MiniJavaCompiler $1 $2
+java -cp "lib/java-cup-11a.jar:src/" MiniJavaCompiler $1 $2 $3

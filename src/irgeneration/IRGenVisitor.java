@@ -146,7 +146,7 @@ public class IRGenVisitor {
   {
     _symbolTable.enterMethod(n.i.s);
 
-    // add this to method variables - shortcut looking up class symbol
+    // add "this" to method variables - shortcut looking up class symbol
     VariableSymbol thisVar = _symbolTable.getCurrentClass().getVariable("this");
     _symbolTable.getCurrentMethod().addLocal(thisVar);
 

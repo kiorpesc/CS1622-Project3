@@ -104,6 +104,7 @@ public class RegisterAllocator {
 
   private int getNewRegColor(SymbolInfo node)
   {
+    System.out.println("getting color for " + node.getName());
     Set<SymbolInfo> interferences = _graph.getInterferences(node);
     if(interferences == null){
       return 0;
@@ -116,7 +117,8 @@ public class RegisterAllocator {
       safeColor = true;
       for(SymbolInfo adjNode : interferences)
       {
-        if(reg == _colors.get(adjNode)){
+        Integer adjColor = _colors.get(adjNode);
+        if(adjColor != null && reg == adjColor){
           safeColor = false;
         }
       }

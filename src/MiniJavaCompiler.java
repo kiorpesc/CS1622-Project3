@@ -77,7 +77,7 @@ public class MiniJavaCompiler
         for(ControlFlowGraph cfg : cfgBuilder.getControlFlowGraphs())
         {
           LivenessAnalysis la = new LivenessAnalysis(cfg);
-          //System.out.println(la);
+          System.out.println(la);
 
           InterferenceGraph ig = new InterferenceGraph(la, cfg);
           //System.out.println(ig);
