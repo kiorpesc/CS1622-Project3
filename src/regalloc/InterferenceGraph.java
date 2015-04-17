@@ -10,12 +10,14 @@ import symboltable.*;
 public class InterferenceGraph {
 
     private Map<SymbolInfo, Set<SymbolInfo>> _graph;
+    private Map<SymbolInfo, SymbolInfo> _moves;
     private LivenessAnalysis _liveRanges;
     private ControlFlowGraph _cfg;
 
     public InterferenceGraph(LivenessAnalysis la, ControlFlowGraph cfg)
     {
       _graph = new HashMap<SymbolInfo, Set<SymbolInfo>>();
+      _moves = new HashMap<SymbolInfo, SymbolInfo>();
       _liveRanges = la;
       _cfg = cfg;
 
@@ -26,9 +28,34 @@ public class InterferenceGraph {
     {
       Set<BasicBlock> cfgBlocks = _cfg.getAllBlocks();
       for(BasicBlock block : cfgBlocks){
+        for(IRQuadruple ir : block.getStatements())
+        {
+          if(ir instanceOf IRCopy)
+          {
+            checkCopyInterference(ir);
+          }
+        }
         processLiveIn(block);
         processLiveOut(block);
       }
+    }
+
+    private void checkCopyInterference(IRCopy copyIR)
+    {
+      SymbolInfo result = copyIR.getResult();
+      SymbolInfo arg = copyIR.getArg1();
+      if(arg instanceOf ConstantSymbol)
+      {
+        // do nothing
+      } else {
+        _moves.put(result, arg);
+        _moves.put(arg, result);
+      }
+    }
+
+    public void coalesceNodes(SymbolInfo a, SymbolInfo b)
+    {
+      // ?
     }
 
     private void processLiveIn(BasicBlock block)
@@ -80,8 +107,11 @@ public class InterferenceGraph {
 
     public void addEdge(SymbolInfo nodeA, SymbolInfo nodeB)
     {
-      addInterference(nodeA, nodeB);
-      addInterference(nodeB, nodeA);
+      if(!_moves.get(nodeA).equals(nodeB)) // dont add move interferences
+      {
+        addInterference(nodeA, nodeB);
+        addInterference(nodeB, nodeA);
+      }
     }
 
     public void removeEdge(SymbolInfo nodeA, SymbolInfo nodeB)
@@ -98,6 +128,11 @@ public class InterferenceGraph {
     public Set<SymbolInfo> getNodes()
     {
       return _graph.keySet();
+    }
+
+    public Set<SymbolInfo> getMoves()
+    {
+      return _moves;
     }
 
     public Set<SymbolInfo> getInterferences(SymbolInfo a)

@@ -18,6 +18,7 @@ public class CodeGenerator implements IRVisitor {
 
   // needs to be <SymbolInfo, String>
   private HashMap<String, String> _registerMap;
+  private Map<SymbolInfo, ControlFlowGraph> _cfgMap;
   private int _nextIntermediateValue;
   private int _nextTempReg;
   private int _currentParam;
@@ -25,8 +26,13 @@ public class CodeGenerator implements IRVisitor {
   private List<IRQuadruple> _irList;
   private Map<SymbolInfo, Integer> _regAllocator;
   private int _minRegister;
+  private ControlFlowGraph _currentMethodCfg;
+  private LivenessAnalysis _currentMethodLiveness;
+  private InterferenceGraph _currentMethodInterference;
+  private RegisterAllocator _currentMethodRegisterAllocator;
+  private int _numRegs;
 
-  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, Integer> regAlloc)
+  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, ControlFlowGraph> cfgs)
   {
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
@@ -36,8 +42,9 @@ public class CodeGenerator implements IRVisitor {
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
-    _regAllocator = regAlloc;
+    _cfgMap = cfgs;
     _minRegister = 8;  // right now hard coding lowest register
+    _numRegs = 22;
   }
 
   private String getIntermediateName()
@@ -374,15 +381,30 @@ public class CodeGenerator implements IRVisitor {
     _mips.add(inst.toString());
   }
 
+  private void allocateForCurrentMethod(MethodSymbol method)
+  {
+    _currentMethodCfg = _cfgMap.get(method);
+    _currentMethodLiveness = new LivenessAnalysis(_currentMethodCfg);
+    _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg);
+    _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
+    _registerAllocator = _currentMethodRegisterAllocator.getColors();
+  }
+
   public void visit(IRLabel n)
   {
     _mips.add(n.toString());
+
     if(n.isMethod())
     {
+      MethodSymbol method = n.getMethod();
+      // could do liveness analysis and register allocation here
+      
+      allocateForCurrentMethod(method);
+
       saveAllRegisters();
       clearRegisterMap();
 
-      MethodSymbol method = n.getMethod();
+
 
       // move arguments into non-argument registers for safety
       StringBuilder inst;

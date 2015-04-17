@@ -14,6 +14,7 @@ public class RegisterAllocator {
   private Map<SymbolInfo, Integer> _colors;
   private Set<SymbolInfo> _spills;
   private InterferenceGraph _graph;
+  private Map<SymbolInfo, SymbolInfo> _moves;
   private int _numRegisters;
   private int _nextColor;
 
@@ -24,6 +25,7 @@ public class RegisterAllocator {
     _colors = new HashMap<SymbolInfo, Integer>();
     _spills = new HashSet<SymbolInfo>();
     _graph = graph;
+    _moves = graph.getMoves();
     _numRegisters = numRegs;
     _nextColor = 0;
 
@@ -32,10 +34,24 @@ public class RegisterAllocator {
 
   public void colorize()
   {
-    // simplify
-    simplify();
-    //printNodeStack();
-    // select
+    boolean freezeNow = false;
+    int coalesceCount = 0;
+    int iterationCount = 0;
+
+    while(_nodes.size() != 0){ // potential spills
+      while(!freezeNow)
+      {
+        simplify();
+        if(_nodes.size() != 0)
+          coalesce();
+
+        if(coalesceCount == 5)
+          freezeNow = true;
+
+        coalesceCount++;
+      }
+      //freeze(); // pick low-degree move node and mark it as non-move, then loop back
+    }
     select();
   }
 
@@ -64,12 +80,24 @@ public class RegisterAllocator {
 
 
       // pick next node
-      nextToRemove = getInsignificantNode();
+      nextToRemove = getInsignificantNonMoveNode();
     }
+  }
 
-    if(_nodes.size() > 0)
+  private void freeze()
+  {
+    SymbolInfo moveNode = getNodeToFreeze();
+    _moves.remove(moveNode);
+  }
+
+  private SymbolInfo getNodeToFreeze()
+  {
+    for(SymbolInfo moveNode : _moves)
     {
-      // we could not simplify all the way, these nodes are potential spills
+      if(_graph.getDegree(moveNode) < _numRegisters)
+      {
+        return moveNode;
+      }
     }
   }
 
@@ -86,20 +114,34 @@ public class RegisterAllocator {
       int color = getNewRegColor(nextToAdd);
       if(color < 0) // this means no safe color was found
       {
-        // ACTUAL SPILL - need to rewrite source code IR
+        // since this node is from the stack, this should not occur - potential spills were not on the stack
+        System.out.println("Spill occurred from STACK - this should not occur.");
       } else {
-        // remove register from spills list, give color
-        _spills.remove(nextToAdd);
         _colors.put(nextToAdd, color);
         _nodes.add(nextToAdd);
       }
 
-      // TODO: should this be done for spills, or are they now ALWAYS in mem and therefore not on the graph?
       for(SymbolInfo nodeA : _graph.getInterferences(nextToAdd))
       {
         _graph.addInterference(nodeA, nextToAdd);
       }
     }
+    /*
+    // now check to see if we can colorize the potential spills
+    Set<SymbolInfo> tempSpillSet = new HashSet<SymbolInfo>(_spills); // copy the set to prevent ordering issues when removing
+    for(SymbolInfo potentialSpill : tempSpillSet)
+    {
+      int color = getNewRegColor(potentialSpill);
+      if(color >= 0)
+      {
+        // not an actual spill
+        _spills.remove(potentialSpill);
+        _colors.put(potentialSpill, color);
+        _nodes.add(nextToAdd);
+      }
+      // shouldn't need to add any interferences, as they were never removed
+    }
+    */
   }
 
   private int getNewRegColor(SymbolInfo node)
@@ -131,11 +173,11 @@ public class RegisterAllocator {
     return -1;
   }
 
-  private SymbolInfo getInsignificantNode()
+  private SymbolInfo getInsignificantNonMoveNode()
   {
     for(SymbolInfo sym : _nodes)
     {
-      if(_graph.getDegree(sym) < _numRegisters)
+      if(_graph.getDegree(sym) < _numRegisters && !_moves.containsKey(sym))
         return sym;
     }
     return null;
