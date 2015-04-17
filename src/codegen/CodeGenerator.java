@@ -18,7 +18,6 @@ public class CodeGenerator implements IRVisitor {
 
   // needs to be <SymbolInfo, String>
   private HashMap<String, String> _registerMap;
-  private int _nextIntermediateValue;
   private int _nextTempReg;
   private int _currentParam;
   private List<String> _mips;
@@ -32,20 +31,11 @@ public class CodeGenerator implements IRVisitor {
     _registerMap = new HashMap<String, String>();
     // $8 == $t0
     _nextTempReg = 8;
-    _nextIntermediateValue = 0;
     _currentParam = 0;
     _mips = new ArrayList<String>();
     _irList = irList;
     _regAllocator = regAlloc;
     _minRegister = 8;  // right now hard coding lowest register
-  }
-
-  private String getIntermediateName()
-  {
-    // need some way of producing names for values that are not
-    // named in 3-address code (i.e., intermediate values)
-    // so we can assign registers to them.
-    return "@@@unnamed" + _nextIntermediateValue++;
   }
 
   // walk IR list, generate basic MIPS for each statement
@@ -157,7 +147,6 @@ public class CodeGenerator implements IRVisitor {
   {
     _registerMap = new HashMap<String,String>();
     _nextTempReg = 8;
-    _nextIntermediateValue = 0;
   }
 
   public void visit(IRArrayAssign n)
