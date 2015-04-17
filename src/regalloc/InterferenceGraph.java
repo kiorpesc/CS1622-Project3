@@ -25,7 +25,7 @@ public class InterferenceGraph {
     public void buildInterferenceGraph()
     {
       Set<BasicBlock> cfgBlocks = _cfg.getAllBlocks();
-      for(BasicBlock block : cfgBlocks){        
+      for(BasicBlock block : cfgBlocks){
         processLiveIn(block);
         processLiveOut(block);
       }
@@ -46,7 +46,7 @@ public class InterferenceGraph {
       Object[] liveArray = liveSet.toArray();
 
       // if there are no interferences, we still need to allocate for the variable
-      if(liveArray.length == 1)
+      if(liveArray.length == 1 && !_graph.containsKey(liveArray[0]))
       {
         _graph.put((SymbolInfo)liveArray[0], new HashSet<SymbolInfo>());
       }
