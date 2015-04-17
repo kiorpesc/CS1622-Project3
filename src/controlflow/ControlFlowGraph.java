@@ -15,6 +15,11 @@ public class ControlFlowGraph
         _root = null;
     }
 
+    public boolean isEmpty()
+    {
+        return _root == null;
+    }
+
     public BasicBlock getRoot()
     {
         return _root;
@@ -22,6 +27,9 @@ public class ControlFlowGraph
 
     public void addBlock(BasicBlock b)
     {
+        if (b.isEmpty())
+            throw new IllegalArgumentException("basic block cannot be empty");
+
         if (_adjacencyList.containsKey(b))
             throw new IllegalArgumentException("duplicate block found");
 
