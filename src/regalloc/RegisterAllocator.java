@@ -83,9 +83,23 @@ public class RegisterAllocator {
     }
   }
 
+  // criteria set by George coalescing algorithm
+  // for every neighbor t of a:
+  //    t already interferes with b
+  //    OR t is of insignificant degree
   private boolean canCombine(SymbolInfo nodeA, SymbolInfo nodeB)
   {
-
+    Set<SymbolInfo> aNeighbors = _graph.get(nodeA);
+    Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
+    for(SymbolInfo t : aNeighbors)
+    {
+      if(!bNeighbors.contains(t))     // if t does not interfere with b, check the second condition
+      {
+        if(_graph.get(t) >= _numRegisters)  // if t is of significant degree AND not a neighbor, we can't combine
+          return false;
+      }
+    }
+    return true;
   }
 
   // George coalescing
@@ -94,7 +108,14 @@ public class RegisterAllocator {
     boolean canCombine;
     for(SymbolInfo nodeA : _moves.keySet())
     {
-      Set<SymbolInfo> AMoves = _moves.get(nodeA);
+      Set<SymbolInfo> aMoves = new HashSet(_moves.get(nodeA)); // get a COPY of the set of move interferences from this node
+      for(SymbolInfo nodeB : aMoves)
+      {
+        if(canCombine(nodeA, nodeB))
+        {
+          combine(nodeA, nodeB);
+        }
+      }
     }
   }
 
