@@ -30,6 +30,7 @@ clean:
 	-rm src/irgeneration/*.class
 	-rm src/codegen/*.class
 	-rm src/controlflow/*.class
+	-rm src/objectimpl/*.class
 	-rm src/MiniJavaLexer.java*
 	-rm src/MiniJavaParser.java
 	-rm src/sym.java

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Stack;
 
 import irgeneration.*;
+import objectimpl.*;
 import symboltable.*;
 import regalloc.*;
 import controlflow.*;
@@ -32,9 +33,12 @@ public class CodeGenerator implements IRVisitor {
   private InterferenceGraph _currentMethodInterferenceGraph;
   private RegisterAllocator _currentMethodRegisterAllocator;
   private int _numRegs;
+  private ObjectLayoutManager _objLayoutMgr;
+  private MethodSymbol _currentMethod = null;
 
-  public CodeGenerator(List<IRQuadruple> irList, Map<MethodSymbol, ControlFlowGraph> cfgs)
+  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
   {
+    _objLayoutMgr = objLayoutMgr;
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
     // $8 == $t0
@@ -158,6 +162,80 @@ public class CodeGenerator implements IRVisitor {
     _nextTempReg = 8;
   }
 
+    public String getRegisterByName(String name)
+  {
+    if(_registerMap.containsKey(name))
+    {
+      return _registerMap.get(name);
+    } else {
+      return getTempRegister(name);
+    }
+  }
+
+  private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
+  {
+    if (sym instanceof ConstantSymbol)
+    {
+      inst.append("li $v1, ");
+      String value = ((ConstantSymbol)sym).getValue();
+      switch (value)
+      {
+        case "true":
+          value = "1";
+          break;
+        case "false":
+          value = "0";
+          break;
+      }
+      inst.append(value);
+      inst.append('\n');
+      return "$v1";
+    }
+    else if (_objLayoutMgr.isInstanceVariable(sym))
+    {
+      String regName = getAllocatedRegister(sym);
+      inst.append("lw ");
+      inst.append(regName);
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(sym));
+      inst.append("($a0)\n");
+      return regName;
+    }
+    return getAllocatedRegister(sym);
+  }
+
+  private void instanceVariableAssignment(StringBuilder inst, IRAssignment n)
+  {
+    // TODO: get the register 'this' was allocated to
+    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
+    {
+      // TODO: handle the case where the result might be spilled?
+      inst.append("\nsw ");
+      inst.append(getAllocatedRegister(n.getResult()));
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
+      inst.append("(");
+      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
+      inst.append(")\n");
+    }
+  }
+
+  private void instanceVariableCopy(StringBuilder inst, IRCopy n)
+  {
+    // TODO: get the register 'this' was allocated to
+    // TODO: handle the case where the result might be spilled?
+    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
+    {
+      inst.append("\nsw ");
+      inst.append(getAllocatedRegister(n.getResult()));
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
+      inst.append("(");
+      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
+      inst.append(")\n");
+    }
+  }
+
   public void visit(IRArrayAssign n)
   {
     // TODO: handle constants
@@ -242,38 +320,6 @@ public class CodeGenerator implements IRVisitor {
     _mips.add(inst.toString());
   }
 
-  public String getRegisterByName(String name)
-  {
-    if(_registerMap.containsKey(name))
-    {
-      return _registerMap.get(name);
-    } else {
-      return getTempRegister(name);
-    }
-  }
-
-  private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
-  {
-    if (sym instanceof ConstantSymbol)
-    {
-      inst.append("li $v1, ");
-      String value = ((ConstantSymbol)sym).getValue();
-      switch (value)
-      {
-        case "true":
-          value = "1";
-          break;
-        case "false":
-          value = "0";
-          break;
-      }
-      inst.append(value);
-      inst.append('\n');
-      return "$v1";
-    }
-    return getAllocatedRegister(sym);
-  }
-
   public void visit(IRAssignment n)
   {
     StringBuilder inst = new StringBuilder();
@@ -307,6 +353,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", ");
       inst.append(arg2RegName);
     }
+    instanceVariableAssignment(inst, n);
     _mips.add(inst.toString());
   }
 
@@ -369,6 +416,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", $zero");
     }
 
+    instanceVariableCopy(inst, n);
     _mips.add(inst.toString());
   }
 
@@ -423,6 +471,7 @@ public class CodeGenerator implements IRVisitor {
         inst.append(", $zero");
         _mips.add(inst.toString());
       }
+      _currentMethod = method;
     }
   }
 
@@ -455,6 +504,23 @@ public class CodeGenerator implements IRVisitor {
   {
     // reserve space for when new object is implemented
     String resultReg = getAllocatedRegister(n.getResult());
+    StringBuilder inst = new StringBuilder();
+
+    String byteSize = "" + _objLayoutMgr.getSizeInBytes(n.getArg1());
+    inst.append(generateInstruction("addi", getParamRegister(), "$0", byteSize));
+
+    // HACK: _new_object routine clobbers $t0 and $t1 and we don't have
+    // saving working properly, so just save/load them for now.
+    inst.append("addi $sp, $sp, -8\nsw $t0, 4($sp)\nsw $t1, 0($sp)\n");
+    inst.append("jal _new_object\n");
+    inst.append("lw $t0, 4($sp)\nlw $t1, 0($sp)\naddi $sp, $sp, 8\n");
+    // move the address to the ersult register
+    inst.append(generateMove(resultReg, "$v0"));
+
+    // reset number of parameters being used.
+    _mips.add(inst.toString());
+    _currentParam = 0;
+
   }
 
   public void visit(IRParam n)
@@ -483,8 +549,10 @@ public class CodeGenerator implements IRVisitor {
   {
     String retName = n.getArg1().getName();
     // store result in $v0
-    StringBuilder retInst = new StringBuilder("add $v0, ");
-    retInst.append(getAllocatedRegister(n.getArg1()));
+    StringBuilder retInst = new StringBuilder();
+    String retReg = getRegisterForValue(retInst, n.getArg1());
+    retInst.append("add $v0, ");
+    retInst.append(retReg);
     retInst.append(", $zero");
     _mips.add(retInst.toString());
 

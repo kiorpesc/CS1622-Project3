@@ -53,6 +53,11 @@ public class ClassSymbol extends SymbolInfo
         return old;
     }
 
+    public Collection<VariableSymbol> getVariables()
+    {
+        return _variables.values();
+    }
+
     // Retrieve the variable specified by id
     public VariableSymbol getVariable(String id)
     {

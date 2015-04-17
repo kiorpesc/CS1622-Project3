@@ -1,16 +1,20 @@
 package symboltable;
 
+import java.util.Collection;
+
 public interface ISymbolTable
 {
+    public Collection<ClassSymbol> getClasses();
+
     // Enter a class.
     public void enterClass(String id);
-    
+
     // Exit a class.
     public void exitClass();
-    
+
     // Enter a method.
     public void enterMethod(String id);
-    
+
     // Exit a method.
     public void exitMethod();
 
@@ -23,7 +27,7 @@ public interface ISymbolTable
     // Return the ClassSymbol for the given id
     public ClassSymbol getClass(String id);
 
-    // Return true iff there's a class with the given id 
+    // Return true iff there's a class with the given id
     public boolean hasClass(String id);
 
     // Returns the current ClassSymbol

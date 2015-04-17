@@ -4,6 +4,7 @@ import java.util.*;
 
 import controlflow.*;
 import irgeneration.*;
+import objectimpl.*;
 import symboltable.*;
 
 public class DeadCodeEliminator
@@ -11,13 +12,14 @@ public class DeadCodeEliminator
 
     private boolean _optimized = false;
 
-    public DeadCodeEliminator(List<IRQuadruple> irList, Collection<ControlFlowGraph> graphs)
+
+    public DeadCodeEliminator(List<IRQuadruple> irList, List<ControlFlowGraph> graphs, ObjectLayoutManager objLayoutMgr)
     {
         Set<IRQuadruple> removable = new HashSet<IRQuadruple>();
 
         for (IRQuadruple irq : irList)
         {
-            if (isConstantCopy(irq))
+            if (isConstantCopy(irq) && !objLayoutMgr.isInstanceVariable(irq.getResult()))
             {
                 ControlFlowGraph graph = CFGUtility.getCFGFromStatement(graphs, irq);
                 BasicBlock b = CFGUtility.getBasicBlockFromStatement(graph, irq);

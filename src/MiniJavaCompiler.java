@@ -4,6 +4,7 @@ import java.util.*;
 import codegen.*;
 import controlflow.*;
 import irgeneration.*;
+import objectimpl.*;
 import optimization.*;
 import semanticanalysis.*;
 import symboltable.*;
@@ -58,11 +59,14 @@ public class MiniJavaCompiler
         irGenerator.visit(program);
         irGenerator.printIRList();
 
+        // determine class variable offsets
+        ObjectLayoutManager objLayoutMgr = new ObjectLayoutManager(symbolTable.getClasses());
+
         // optimizations!
         List<IRQuadruple> irList = irGenerator.getIRList();
         if (_optimize)
         {
-            irList = runOptimizations(irList);
+            irList = runOptimizations(irList, objLayoutMgr);
             System.out.println("----- OPTIMIZED IR -----");
             for (IRQuadruple irq : irList)
             {
@@ -72,7 +76,7 @@ public class MiniJavaCompiler
 
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
 
-        CodeGenerator codeGenerator = new CodeGenerator(irList, cfgBuilder.getMethodToCFGMap()); // TODO: placeholder for real cfgmap function name
+        CodeGenerator codeGenerator = new CodeGenerator(irList, cfgBuilder.getMethodToCFGMap(), objLayoutMgr);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         String outputFileName = args[1];
@@ -92,9 +96,9 @@ public class MiniJavaCompiler
         return argsList.toArray(new String[0]);
     }
 
-    private static List<IRQuadruple> runOptimizations(List<IRQuadruple> irList)
+    private static List<IRQuadruple> runOptimizations(List<IRQuadruple> irList, ObjectLayoutManager objLayoutMgr)
     {
-        IROptimizer optimizer = new IROptimizer(irList);
+        IROptimizer optimizer = new IROptimizer(irList, objLayoutMgr);
         optimizer.optimize();
         return optimizer.getOptimizedIR();
     }
