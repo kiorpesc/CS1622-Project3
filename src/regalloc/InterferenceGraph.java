@@ -7,6 +7,7 @@ import java.util.HashSet;
 import controlflow.*;
 import symboltable.*;
 import irgeneration.*;
+import objectimpl.*;
 
 public class InterferenceGraph {
 
@@ -16,8 +17,9 @@ public class InterferenceGraph {
     private Set<SymbolInfo> _moveNodes; // this is the publicly visible set of move nodes CURRENTLY in the graph
     private LivenessAnalysis _liveRanges;
     private ControlFlowGraph _cfg;
+    private ObjectLayoutManager _objLayoutManager;
 
-    public InterferenceGraph(LivenessAnalysis la, ControlFlowGraph cfg)
+    public InterferenceGraph(LivenessAnalysis la, ControlFlowGraph cfg, ObjectLayoutManager objlm)
     {
       _graph = new HashMap<SymbolInfo, Set<SymbolInfo>>();
       _moves = new HashMap<SymbolInfo, Set<SymbolInfo>>();
@@ -25,10 +27,21 @@ public class InterferenceGraph {
       _moveNodes = new HashSet<SymbolInfo>();
       _liveRanges = la;
       _cfg = cfg;
+      _objLayoutManager = objlm;
 
       buildInterferenceGraph();
     }
 
+    public void addInstanceInterferences(SymbolInfo thisVar)
+    {
+      Set<SymbolInfo> tempNodes = new HashSet<SymbolInfo>(_nodes);
+      for(SymbolInfo node : tempNodes)
+      {
+        if(_objLayoutManager.isInstanceVariable(node))
+          if(!node.equals(thisVar))
+            addEdge(node, thisVar);
+      }
+    }
 
     public void buildInterferenceGraph()
     {

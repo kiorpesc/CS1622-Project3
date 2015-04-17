@@ -5,8 +5,13 @@ class Test {
 }
 
 class Test2 {
+
+    int z;
+
     public int First(int y) {
-        y = this.Second(y, 3, 4);
+        z = y;
+        y = this.Second(y, z, 4);
+        z = y + 3;
         return y;
     }
 

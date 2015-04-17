@@ -13,7 +13,7 @@ public class DeadCodeEliminator
     private boolean _optimized = false;
 
 
-    public DeadCodeEliminator(List<IRQuadruple> irList, List<ControlFlowGraph> graphs, ObjectLayoutManager objLayoutMgr)
+    public DeadCodeEliminator(List<IRQuadruple> irList, Collection<ControlFlowGraph> graphs, ObjectLayoutManager objLayoutMgr)
     {
         Set<IRQuadruple> removable = new HashSet<IRQuadruple>();
 

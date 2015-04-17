@@ -70,7 +70,8 @@ public class RegisterAllocator {
     {
       // remove node and put on stack
       // first, remove interferences to other nodes (without removing them from the node itself)
-      for(SymbolInfo nodeA : _graph.getInterferences(nextToRemove))
+      Set<SymbolInfo> nextInterferences = new HashSet<SymbolInfo>(_graph.getInterferences(nextToRemove));
+      for(SymbolInfo nodeA : nextInterferences)
         _graph.removeInterference(nodeA, nextToRemove);
 
       _nodeStack.push(nextToRemove); // push to the stack

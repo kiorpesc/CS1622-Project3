@@ -36,7 +36,7 @@ public class CodeGenerator implements IRVisitor {
   private ObjectLayoutManager _objLayoutMgr;
   private MethodSymbol _currentMethod = null;
 
-  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
+  public CodeGenerator(List<IRQuadruple> irList, Map<MethodSymbol, ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
   {
     _objLayoutMgr = objLayoutMgr;
     //_jumpMap = new Stack<HashMap<String, String>>();
@@ -426,7 +426,9 @@ public class CodeGenerator implements IRVisitor {
     //System.out.println(_currentMethodCfg);
     _currentMethodLiveness = new LivenessAnalysis(_currentMethodCfg);
     //System.out.println(_currentMethodLiveness);
-    _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg);
+    _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg, _objLayoutMgr);
+    if(method.getName() != "main")
+      _currentMethodInterferenceGraph.addInstanceInterferences(method.getVariable("this"));
     System.out.println(_currentMethodInterferenceGraph);
     _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
     _regAllocator = _currentMethodRegisterAllocator.getColors();
