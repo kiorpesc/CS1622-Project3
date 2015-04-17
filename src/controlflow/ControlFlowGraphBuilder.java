@@ -21,7 +21,9 @@ public class ControlFlowGraphBuilder implements IRVisitor
         // end the last block
         if (!_currentBlock.isEmpty())
         {
-            endBlock();
+            // this should never happen, since every statement besides
+            // a label ends a block, and nothing should end with a label.
+            throw new IllegalStateException("didn't finish current block");
         }
 
         // finish the last CFG
@@ -75,6 +77,7 @@ public class ControlFlowGraphBuilder implements IRVisitor
         // set previous to null
         _previous = null;
         _controlFlowGraphs.add(_currentCfg);
+        _currentCfg = new ControlFlowGraph();
     }
 
     private void endBlock()
@@ -87,7 +90,9 @@ public class ControlFlowGraphBuilder implements IRVisitor
     private void tieBlocks()
     {
         if (_previous != null)
+        {
             _currentCfg.addEdge(_previous, _currentBlock);
+        }
     }
 
     private void endBlockAndCreateEdge()
@@ -140,14 +145,13 @@ public class ControlFlowGraphBuilder implements IRVisitor
         {
             // save the current block, since a label is always the target
             // of a branch or jump
-            endBlock();
+            endBlockAndCreateEdge();
 
             if (n.isMethod())
             {
                 // if we're starting a new method,
                 // end the current control flow graph.
                 addControlFlowGraph();
-                _currentCfg = new ControlFlowGraph();
             }
 
         }
@@ -172,12 +176,9 @@ public class ControlFlowGraphBuilder implements IRVisitor
     public void visit(IRReturn n)
     {
         _currentBlock.addStatement(n);
-        _currentCfg.addBlock(_currentBlock);
+        endBlockAndCreateEdge();
 
         addControlFlowGraph();
-
-        _currentBlock = new BasicBlock();
-        _currentCfg = new ControlFlowGraph();
     }
     public void visit(IRUnaryAssignment n)
     {
