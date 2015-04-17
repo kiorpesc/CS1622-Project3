@@ -26,6 +26,7 @@ public class CodeGenerator implements IRVisitor {
   private Map<SymbolInfo, Integer> _regAllocator;
   private int _minRegister;
   private ObjectLayoutManager _objLayoutMgr;
+  private MethodSymbol _currentMethod = null;
 
   public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, Integer> regAlloc, ObjectLayoutManager objLayoutMgr)
   {
@@ -204,7 +205,9 @@ public class CodeGenerator implements IRVisitor {
       inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
       inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
-      inst.append("($a0)\n");
+      inst.append("(");
+      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
+      inst.append(")\n");
     }
   }
 
@@ -218,7 +221,9 @@ public class CodeGenerator implements IRVisitor {
       inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
       inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
-      inst.append("($a0)\n");
+      inst.append("(");
+      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
+      inst.append(")\n");
     }
   }
 
@@ -438,6 +443,7 @@ public class CodeGenerator implements IRVisitor {
         inst.append(", $zero");
         _mips.add(inst.toString());
       }
+      _currentMethod = method;
     }
   }
 
@@ -470,6 +476,23 @@ public class CodeGenerator implements IRVisitor {
   {
     // reserve space for when new object is implemented
     String resultReg = getAllocatedRegister(n.getResult());
+    StringBuilder inst = new StringBuilder();
+
+    String byteSize = "" + _objLayoutMgr.getSizeInBytes(n.getArg1());
+    inst.append(generateInstruction("addi", getParamRegister(), "$0", byteSize));
+
+    // HACK: _new_object routine clobbers $t0 and $t1 and we don't have
+    // saving working properly, so just save/load them for now.
+    inst.append("addi $sp, $sp, -8\nsw $t0, 4($sp)\nsw $t1, 0($sp)\n");
+    inst.append("jal _new_object\n");
+    inst.append("lw $t0, 4($sp)\nlw $t1, 0($sp)\naddi $sp, $sp, 8\n");
+    // move the address to the ersult register
+    inst.append(generateMove(resultReg, "$v0"));
+
+    // reset number of parameters being used.
+    _mips.add(inst.toString());
+    _currentParam = 0;
+
   }
 
   public void visit(IRParam n)
