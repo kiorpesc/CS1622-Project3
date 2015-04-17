@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Stack;
 
 import irgeneration.*;
+import objectimpl.*;
 import symboltable.*;
 import regalloc.*;
 
@@ -24,9 +25,11 @@ public class CodeGenerator implements IRVisitor {
   private List<IRQuadruple> _irList;
   private Map<SymbolInfo, Integer> _regAllocator;
   private int _minRegister;
+  private ObjectLayoutManager _objLayoutMgr;
 
-  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, Integer> regAlloc)
+  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, Integer> regAlloc, ObjectLayoutManager objLayoutMgr)
   {
+    _objLayoutMgr = objLayoutMgr;
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
     // $8 == $t0
@@ -149,6 +152,74 @@ public class CodeGenerator implements IRVisitor {
     _nextTempReg = 8;
   }
 
+    public String getRegisterByName(String name)
+  {
+    if(_registerMap.containsKey(name))
+    {
+      return _registerMap.get(name);
+    } else {
+      return getTempRegister(name);
+    }
+  }
+
+  private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
+  {
+    if (sym instanceof ConstantSymbol)
+    {
+      inst.append("li $v1, ");
+      String value = ((ConstantSymbol)sym).getValue();
+      switch (value)
+      {
+        case "true":
+          value = "1";
+          break;
+        case "false":
+          value = "0";
+          break;
+      }
+      inst.append(value);
+      inst.append('\n');
+      return "$v1";
+    }
+    else if (_objLayoutMgr.isInstanceVariable(sym))
+    {
+      String regName = getAllocatedRegister(sym);
+      inst.append("lw ");
+      inst.append(regName);
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(sym));
+      inst.append("($a0)\n");
+      return regName;
+    }
+    return getAllocatedRegister(sym);
+  }
+
+  private void instanceVariableAssignment(StringBuilder inst, IRAssignment n)
+  {
+    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
+    {
+      // TODO: handle the case where the result might be spilled?
+      inst.append("\nsw ");
+      inst.append(getAllocatedRegister(n.getResult()));
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
+      inst.append("($a0)\n");
+    }
+  }
+
+  private void instanceVariableCopy(StringBuilder inst, IRCopy n)
+  {
+    // TODO: handle the case where the result might be spilled?
+    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
+    {
+      inst.append("\nsw ");
+      inst.append(getAllocatedRegister(n.getResult()));
+      inst.append(", ");
+      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
+      inst.append("($a0)\n");
+    }
+  }
+
   public void visit(IRArrayAssign n)
   {
     // TODO: handle constants
@@ -233,38 +304,6 @@ public class CodeGenerator implements IRVisitor {
     _mips.add(inst.toString());
   }
 
-  public String getRegisterByName(String name)
-  {
-    if(_registerMap.containsKey(name))
-    {
-      return _registerMap.get(name);
-    } else {
-      return getTempRegister(name);
-    }
-  }
-
-  private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
-  {
-    if (sym instanceof ConstantSymbol)
-    {
-      inst.append("li $v1, ");
-      String value = ((ConstantSymbol)sym).getValue();
-      switch (value)
-      {
-        case "true":
-          value = "1";
-          break;
-        case "false":
-          value = "0";
-          break;
-      }
-      inst.append(value);
-      inst.append('\n');
-      return "$v1";
-    }
-    return getAllocatedRegister(sym);
-  }
-
   public void visit(IRAssignment n)
   {
     StringBuilder inst = new StringBuilder();
@@ -298,6 +337,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", ");
       inst.append(arg2RegName);
     }
+    instanceVariableAssignment(inst, n);
     _mips.add(inst.toString());
   }
 
@@ -360,6 +400,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", $zero");
     }
 
+    instanceVariableCopy(inst, n);
     _mips.add(inst.toString());
   }
 

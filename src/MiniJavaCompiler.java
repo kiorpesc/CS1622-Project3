@@ -4,6 +4,7 @@ import java.util.*;
 import codegen.*;
 import controlflow.*;
 import irgeneration.*;
+import objectimpl.*;
 import optimization.*;
 import semanticanalysis.*;
 import symboltable.*;
@@ -87,7 +88,10 @@ public class MiniJavaCompiler
           regColors.putAll(regAlloc.getColors());
         }
 
-        CodeGenerator codeGenerator = new CodeGenerator(irList, regColors);
+        // determine class variable offsets
+        ObjectLayoutManager objLayoutMgr = new ObjectLayoutManager(symbolTable.getClasses());
+
+        CodeGenerator codeGenerator = new CodeGenerator(irList, regColors, objLayoutMgr);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         String outputFileName = args[1];

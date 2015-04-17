@@ -20,6 +20,11 @@ public class ObjectLayoutManager
             computeOffsets(classSym);
     }
 
+    public boolean isInstanceVariable(SymbolInfo sym)
+    {
+        return _variableOffsets.containsKey(sym);
+    }
+
     public int getSizeInBytes(SymbolInfo classSym)
     {
         return _classesToVariables.get(classSym).size() * 4;
