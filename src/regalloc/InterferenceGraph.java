@@ -10,7 +10,7 @@ import symboltable.*;
 public class InterferenceGraph {
 
     private Map<SymbolInfo, Set<SymbolInfo>> _graph;
-    private Map<SymbolInfo, SymbolInfo> _moves;
+    private Map<SymbolInfo, Set<SymbolInfo>> _moves;
     private LivenessAnalysis _liveRanges;
     private ControlFlowGraph _cfg;
 
@@ -48,9 +48,24 @@ public class InterferenceGraph {
       {
         // do nothing
       } else {
-        _moves.put(result, arg);
-        _moves.put(arg, result);
+        addMoveInterference(result, arg);
+        addMoveInterference(arg, result);
       }
+    }
+
+    public void addMoveInterference(SymbolInfo a, SymbolInfo b)
+    {
+      if(!_moves.containsKey(a))
+      {
+        _moves.put(a, new HashSet<SymbolInfo>());
+      }
+      _moves.get(a).add(b);
+    }
+
+    public void removeMoveInterference(SymbolInfo a, SymbolInfo b)
+    {
+      Set<SymbolInfo> aInterferences = _moves.get(a);
+      aInterferences.remove(b);
     }
 
     public void coalesceNodes(SymbolInfo a, SymbolInfo b)
@@ -130,7 +145,7 @@ public class InterferenceGraph {
       return _graph.keySet();
     }
 
-    public Set<SymbolInfo> getMoves()
+    public Map<SymbolInfo, Set<SymbolInfo>> getMoves()
     {
       return _moves;
     }

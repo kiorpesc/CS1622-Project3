@@ -14,7 +14,7 @@ public class RegisterAllocator {
   private Map<SymbolInfo, Integer> _colors;
   private Set<SymbolInfo> _spills;
   private InterferenceGraph _graph;
-  private Map<SymbolInfo, SymbolInfo> _moves;
+  private Map<SymbolInfo, Set<SymbolInfo>> _moves;
   private int _numRegisters;
   private int _nextColor;
 
@@ -66,7 +66,7 @@ public class RegisterAllocator {
 
   private void simplify()
   {
-    SymbolInfo nextToRemove = getInsignificantNode();
+    SymbolInfo nextToRemove = getInsignificantNonMoveNode();
     // repeat until no nodes left, or until we can't find an insignificant node
     while(_nodes.size() > 0 && nextToRemove != null)
     {
@@ -78,9 +78,23 @@ public class RegisterAllocator {
       _nodeStack.push(nextToRemove); // push to the stack
       _nodes.remove(nextToRemove);  // remove it from the list
 
-
       // pick next node
       nextToRemove = getInsignificantNonMoveNode();
+    }
+  }
+
+  private boolean canCombine(SymbolInfo nodeA, SymbolInfo nodeB)
+  {
+
+  }
+
+  // George coalescing
+  private void coalesce()
+  {
+    boolean canCombine;
+    for(SymbolInfo nodeA : _moves.keySet())
+    {
+      Set<SymbolInfo> AMoves = _moves.get(nodeA);
     }
   }
 

@@ -77,7 +77,7 @@ public class MiniJavaCompiler
         //codeGenerator.printCode();
         String outputFileName = args[1];
         System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----");
-        codeGenerator.outputMIPSFile(outputFileName); //TODO: make this an argument
+        codeGenerator.outputMIPSFile(outputFileName);
     }
 
     private static String[] parseFlags(String[] args)
