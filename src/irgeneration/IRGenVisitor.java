@@ -95,9 +95,13 @@ public class IRGenVisitor {
   public SymbolInfo visit(MainClass n)
   {
     _symbolTable.enterClass(n.i1.s);
+
     IRLabel mainLabel = new IRLabel("_main", _symbolTable.getCurrentClass().getMethod("main"));
     _irList.add(mainLabel);
+    
+    _symbolTable.enterMethod("main");
     n.s.accept(this);
+    _symbolTable.exitMethod();
     _symbolTable.exitClass();
 
     // todo: system.exit
