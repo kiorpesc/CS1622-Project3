@@ -11,6 +11,11 @@ public class SymbolTable implements ISymbolTable
     private ClassSymbol _currentClass = null;
     private MethodSymbol _currentMethod = null;
 
+    public Collection<ClassSymbol> getClasses()
+    {
+        return _classes.values();
+    }
+
     public void enterClass(String id)
     {
         if (_currentClass != null || _currentMethod != null)
