@@ -59,11 +59,14 @@ public class MiniJavaCompiler
         irGenerator.visit(program);
         irGenerator.printIRList();
 
+        // determine class variable offsets
+        ObjectLayoutManager objLayoutMgr = new ObjectLayoutManager(symbolTable.getClasses());
+
         // optimizations!
         List<IRQuadruple> irList = irGenerator.getIRList();
         if (_optimize)
         {
-            irList = runOptimizations(irList);
+            irList = runOptimizations(irList, objLayoutMgr);
             System.out.println("----- OPTIMIZED IR -----");
             for (IRQuadruple irq : irList)
             {
@@ -88,9 +91,6 @@ public class MiniJavaCompiler
           regColors.putAll(regAlloc.getColors());
         }
 
-        // determine class variable offsets
-        ObjectLayoutManager objLayoutMgr = new ObjectLayoutManager(symbolTable.getClasses());
-
         CodeGenerator codeGenerator = new CodeGenerator(irList, regColors, objLayoutMgr);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
@@ -111,9 +111,9 @@ public class MiniJavaCompiler
         return argsList.toArray(new String[0]);
     }
 
-    private static List<IRQuadruple> runOptimizations(List<IRQuadruple> irList)
+    private static List<IRQuadruple> runOptimizations(List<IRQuadruple> irList, ObjectLayoutManager objLayoutMgr)
     {
-        IROptimizer optimizer = new IROptimizer(irList);
+        IROptimizer optimizer = new IROptimizer(irList, objLayoutMgr);
         optimizer.optimize();
         return optimizer.getOptimizedIR();
     }

@@ -4,15 +4,18 @@ import java.util.*;
 
 import irgeneration.*;
 import controlflow.*;
+import objectimpl.*;
 
 public class IROptimizer
 {
     private List<IRQuadruple> _irList;
+    private ObjectLayoutManager _objLayoutMgr;
 
-    public IROptimizer(List<IRQuadruple> irList)
+    public IROptimizer(List<IRQuadruple> irList, ObjectLayoutManager objLayoutMgr)
     {
         // copy the IR so we can safely optimize it
         _irList = new ArrayList<IRQuadruple>(irList);
+        _objLayoutMgr = objLayoutMgr;
     }
 
     public List<IRQuadruple> getOptimizedIR()
@@ -45,7 +48,7 @@ public class IROptimizer
         ConstantPropagator prop = new ConstantPropagator(_irList, cfgs);
         // don't need to rebuild CFG, since propagating just changes
         // arguments
-        DeadCodeEliminator elim = new DeadCodeEliminator(_irList, cfgs);
+        DeadCodeEliminator elim = new DeadCodeEliminator(_irList, cfgs, _objLayoutMgr);
 
         return folder.wasOptimized() || prop.wasOptimized() || elim.wasOptimized();
     }

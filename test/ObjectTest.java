@@ -13,7 +13,14 @@ class Derp
 
     public int what()
     {
-        return 3;
+        x = 3;
+        System.out.println(this.foo());
+        return x + 1;
+    }
+
+    public int foo()
+    {
+        return x;
     }
 }
 

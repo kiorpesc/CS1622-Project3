@@ -196,6 +196,7 @@ public class CodeGenerator implements IRVisitor {
 
   private void instanceVariableAssignment(StringBuilder inst, IRAssignment n)
   {
+    // TODO: get the register 'this' was allocated to
     if (_objLayoutMgr.isInstanceVariable(n.getResult()))
     {
       // TODO: handle the case where the result might be spilled?
@@ -209,6 +210,7 @@ public class CodeGenerator implements IRVisitor {
 
   private void instanceVariableCopy(StringBuilder inst, IRCopy n)
   {
+    // TODO: get the register 'this' was allocated to
     // TODO: handle the case where the result might be spilled?
     if (_objLayoutMgr.isInstanceVariable(n.getResult()))
     {
@@ -496,8 +498,10 @@ public class CodeGenerator implements IRVisitor {
   {
     String retName = n.getArg1().getName();
     // store result in $v0
-    StringBuilder retInst = new StringBuilder("add $v0, ");
-    retInst.append(getAllocatedRegister(n.getArg1()));
+    StringBuilder retInst = new StringBuilder();
+    String retReg = getRegisterForValue(retInst, n.getArg1());
+    retInst.append("add $v0, ");
+    retInst.append(retReg);
     retInst.append(", $zero");
     _mips.add(retInst.toString());
 
