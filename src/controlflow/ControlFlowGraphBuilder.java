@@ -2,6 +2,7 @@ package controlflow;
 
 import java.util.*;
 import irgeneration.*;
+import symboltable.*;
 
 // Visits IRList and constructs a list of ControlFlowGraphs (one for each method)
 public class ControlFlowGraphBuilder implements IRVisitor
@@ -9,9 +10,10 @@ public class ControlFlowGraphBuilder implements IRVisitor
     private ControlFlowGraph _currentCfg = new ControlFlowGraph();
     private BasicBlock _previous = null;
     private BasicBlock _currentBlock = new BasicBlock();
+    private MethodSymbol _currentMethod = null;
 
     private Map<String, BasicBlock> _labelsToBlocks = new HashMap<String, BasicBlock>();
-    private List<ControlFlowGraph> _controlFlowGraphs = new ArrayList<ControlFlowGraph>();
+    private Map<MethodSymbol, ControlFlowGraph> _controlFlowGraphs = new HashMap<MethodSymbol, ControlFlowGraph>();
 
     public ControlFlowGraphBuilder(List<IRQuadruple> irList)
     {
@@ -34,9 +36,15 @@ public class ControlFlowGraphBuilder implements IRVisitor
 
         _currentCfg = null;
         _currentBlock = null;
+        _currentMethod = null;
     }
 
-    public List<ControlFlowGraph> getControlFlowGraphs()
+    public Collection<ControlFlowGraph> getControlFlowGraphs()
+    {
+        return _controlFlowGraphs.values();
+    }
+
+    public Map<MethodSymbol, ControlFlowGraph> getMethodToCFGMap()
     {
         return _controlFlowGraphs;
     }
@@ -76,7 +84,9 @@ public class ControlFlowGraphBuilder implements IRVisitor
         _labelsToBlocks.clear();
         // set previous to null
         _previous = null;
-        _controlFlowGraphs.add(_currentCfg);
+        if (_currentMethod == null)
+            throw new IllegalStateException("cannot associate CFG with no method");
+        _controlFlowGraphs.put(_currentMethod, _currentCfg);
         _currentCfg = new ControlFlowGraph();
     }
 
@@ -140,6 +150,8 @@ public class ControlFlowGraphBuilder implements IRVisitor
     }
     public void visit(IRLabel n)
     {
+        System.out.println("label: " + n);
+        System.out.println("is method: " + n.isMethod());
         // check if our current block is non-empty
         if (!_currentBlock.isEmpty())
         {
@@ -147,14 +159,16 @@ public class ControlFlowGraphBuilder implements IRVisitor
             // of a branch or jump
             endBlockAndCreateEdge();
 
-            if (n.isMethod())
-            {
-                // if we're starting a new method,
-                // end the current control flow graph.
-                addControlFlowGraph();
-            }
-
         }
+        if (n.isMethod())
+        {
+            // if we're starting a new method, end the current control flow graph.
+            if (!_currentCfg.isEmpty())
+                addControlFlowGraph();
+
+            _currentMethod = n.getMethod();
+        }
+
         _currentBlock.addStatement(n);
         _labelsToBlocks.put(n.getLabel(), _currentBlock);
     }

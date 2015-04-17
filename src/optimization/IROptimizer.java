@@ -32,7 +32,7 @@ public class IROptimizer
         // but whatever yolo
         // build our CFGS for the IR
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(_irList);
-        List<ControlFlowGraph> cfgs = cfgBuilder.getControlFlowGraphs();
+        Collection<ControlFlowGraph> cfgs = cfgBuilder.getControlFlowGraphs();
 
         ConstantFolder folder = new ConstantFolder(_irList);
         // rebuild CFG in case folder was optimized, since folding

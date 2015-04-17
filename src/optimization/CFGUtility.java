@@ -8,7 +8,7 @@ import controlflow.*;
 public class CFGUtility
 {
     // gets the CFG that contains the IR statement
-    public static ControlFlowGraph getCFGFromStatement(List<ControlFlowGraph> cfgs, IRQuadruple irq)
+    public static ControlFlowGraph getCFGFromStatement(Collection<ControlFlowGraph> cfgs, IRQuadruple irq)
     {
         for (ControlFlowGraph g : cfgs)
         {
