@@ -10,25 +10,22 @@ import java.util.Stack;
 public class RegisterAllocator {
 
   private Stack<SymbolInfo> _nodeStack;
-  private Set<SymbolInfo> _nodes;
   private Map<SymbolInfo, Integer> _colors;
   private Set<SymbolInfo> _spills;
   private InterferenceGraph _graph;
-  private Map<SymbolInfo, Set<SymbolInfo>> _moves;
+  private Map<SymbolInfo, Set<SymbolInfo>> _coalesced;
   private int _numRegisters;
   private int _nextColor;
 
   public RegisterAllocator(InterferenceGraph graph, int numRegs)
   {
     _nodeStack = new Stack<SymbolInfo>();
-    _nodes = new HashSet(graph.getNodes()); // make a copy of the keySet
     _colors = new HashMap<SymbolInfo, Integer>();
     _spills = new HashSet<SymbolInfo>();
+    _coalesced = new HashMap<SymbolInfo, Set<SymbolInfo>>();
     _graph = graph;
-    _moves = graph.getMoves();
     _numRegisters = numRegs;
     _nextColor = 0;
-
     colorize();
   }
 
@@ -38,11 +35,11 @@ public class RegisterAllocator {
     int coalesceCount = 0;
     int iterationCount = 0;
 
-    while(_nodes.size() != 0){ // potential spills
+    while(_graph.getNodes().size() != 0){ // potential spills
       while(!freezeNow)
       {
         simplify();
-        if(_nodes.size() != 0)
+        if(_graph.getNodes().size() != 0)
           coalesce();
 
         if(coalesceCount == 5)
@@ -66,9 +63,10 @@ public class RegisterAllocator {
 
   private void simplify()
   {
+    System.out.println("SIMPLIFY");
     SymbolInfo nextToRemove = getInsignificantNonMoveNode();
     // repeat until no nodes left, or until we can't find an insignificant node
-    while(_nodes.size() > 0 && nextToRemove != null)
+    while(_graph.getNodes().size() > 0 && nextToRemove != null)
     {
       // remove node and put on stack
       // first, remove interferences to other nodes (without removing them from the node itself)
@@ -76,7 +74,7 @@ public class RegisterAllocator {
         _graph.removeInterference(nodeA, nextToRemove);
 
       _nodeStack.push(nextToRemove); // push to the stack
-      _nodes.remove(nextToRemove);  // remove it from the list
+      _graph.removeNode(nextToRemove);
 
       // pick next node
       nextToRemove = getInsignificantNonMoveNode();
@@ -89,51 +87,80 @@ public class RegisterAllocator {
   //    OR t is of insignificant degree
   private boolean canCombine(SymbolInfo nodeA, SymbolInfo nodeB)
   {
-    Set<SymbolInfo> aNeighbors = _graph.get(nodeA);
-    Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
+    Set<SymbolInfo> aNeighbors = _graph.getInterferences(nodeA);
+    Set<SymbolInfo> bNeighbors = _graph.getInterferences(nodeB);
     for(SymbolInfo t : aNeighbors)
     {
       if(!bNeighbors.contains(t))     // if t does not interfere with b, check the second condition
       {
-        if(_graph.get(t) >= _numRegisters)  // if t is of significant degree AND not a neighbor, we can't combine
+        if(_graph.getDegree(t) >= _numRegisters)  // if t is of significant degree AND not a neighbor, we can't combine
           return false;
       }
     }
     return true;
   }
 
+  private boolean combine(SymbolInfo nodeA, SymbolInfo nodeB)
+  {
+    System.out.println("combining " + nodeA.getName() + " and " + nodeB.getName() );
+    // add all of b's interferences (move or otherwise) to a
+    _graph.coalesceNodes(nodeA, nodeB);
+
+    // somewhere store the link between these two nodes
+    if(!_coalesced.containsKey(nodeA))
+    {
+      _coalesced.put(nodeA, new HashSet<SymbolInfo>());
+    }
+    _coalesced.get(nodeA).add(nodeB);
+
+    return true;
+  }
+
   // George coalescing
-  private void coalesce()
+  private boolean _coalesce()
   {
     boolean canCombine;
-    for(SymbolInfo nodeA : _moves.keySet())
+    for(SymbolInfo nodeA : _graph.getMoveNodes())
     {
-      Set<SymbolInfo> aMoves = new HashSet(_moves.get(nodeA)); // get a COPY of the set of move interferences from this node
+      Set<SymbolInfo> aMoves = new HashSet(_graph.getMoves(nodeA)); // get a COPY of the set of move interferences from this node
       for(SymbolInfo nodeB : aMoves)
       {
         if(canCombine(nodeA, nodeB))
         {
-          combine(nodeA, nodeB);
+          return combine(nodeA, nodeB);
         }
       }
     }
+    return false;
   }
 
+  private void coalesce()
+  {
+    System.out.println("COALESCE");
+    boolean coalesced = true;
+    while(coalesced)
+    {
+      coalesced = _coalesce();
+    }
+  }
+
+  // TODO: what else needs to be done when a node is marked non-move?
   private void freeze()
   {
     SymbolInfo moveNode = getNodeToFreeze();
-    _moves.remove(moveNode);
+    _graph.freezeNode(moveNode);
   }
 
   private SymbolInfo getNodeToFreeze()
   {
-    for(SymbolInfo moveNode : _moves)
+    for(SymbolInfo moveNode : _graph.getMoveNodes())
     {
       if(_graph.getDegree(moveNode) < _numRegisters)
       {
         return moveNode;
       }
     }
+    return null;
   }
 
   private void select()
@@ -153,7 +180,12 @@ public class RegisterAllocator {
         System.out.println("Spill occurred from STACK - this should not occur.");
       } else {
         _colors.put(nextToAdd, color);
-        _nodes.add(nextToAdd);
+        if(_coalesced.containsKey(nextToAdd)) // colorize any nodes that have been combined into this one
+        {
+          for(SymbolInfo copy : _coalesced.get(nextToAdd))
+            _colors.put(copy, color);
+        }
+        _graph.addNode(nextToAdd); // add the node back to the graph
       }
 
       for(SymbolInfo nodeA : _graph.getInterferences(nextToAdd))
@@ -210,9 +242,9 @@ public class RegisterAllocator {
 
   private SymbolInfo getInsignificantNonMoveNode()
   {
-    for(SymbolInfo sym : _nodes)
+    for(SymbolInfo sym : _graph.getNodes())
     {
-      if(_graph.getDegree(sym) < _numRegisters && !_moves.containsKey(sym))
+      if(_graph.getDegree(sym) < _numRegisters && !_graph.getMoveNodes().contains(sym))
         return sym;
     }
     return null;
@@ -221,7 +253,7 @@ public class RegisterAllocator {
   public String toString()
   {
     StringBuilder output = new StringBuilder("============ Register Allocations ==========\n");
-    for(SymbolInfo node : _nodes)
+    for(SymbolInfo node : _graph.getNodes())
     {
       output.append(node.getName());
       output.append(" : $");

@@ -9,6 +9,7 @@ import java.util.Stack;
 import irgeneration.*;
 import symboltable.*;
 import regalloc.*;
+import controlflow.*;
 
 import java.io.*;
 import java.util.Scanner;
@@ -18,7 +19,7 @@ public class CodeGenerator implements IRVisitor {
 
   // needs to be <SymbolInfo, String>
   private HashMap<String, String> _registerMap;
-  private Map<SymbolInfo, ControlFlowGraph> _cfgMap;
+  private Map<MethodSymbol, ControlFlowGraph> _cfgMap;
   private int _nextIntermediateValue;
   private int _nextTempReg;
   private int _currentParam;
@@ -28,11 +29,11 @@ public class CodeGenerator implements IRVisitor {
   private int _minRegister;
   private ControlFlowGraph _currentMethodCfg;
   private LivenessAnalysis _currentMethodLiveness;
-  private InterferenceGraph _currentMethodInterference;
+  private InterferenceGraph _currentMethodInterferenceGraph;
   private RegisterAllocator _currentMethodRegisterAllocator;
   private int _numRegs;
 
-  public CodeGenerator(List<IRQuadruple> irList, Map<SymbolInfo, ControlFlowGraph> cfgs)
+  public CodeGenerator(List<IRQuadruple> irList, Map<MethodSymbol, ControlFlowGraph> cfgs)
   {
     //_jumpMap = new Stack<HashMap<String, String>>();
     _registerMap = new HashMap<String, String>();
@@ -374,10 +375,14 @@ public class CodeGenerator implements IRVisitor {
   private void allocateForCurrentMethod(MethodSymbol method)
   {
     _currentMethodCfg = _cfgMap.get(method);
+    //System.out.println(_currentMethodCfg);
     _currentMethodLiveness = new LivenessAnalysis(_currentMethodCfg);
+    //System.out.println(_currentMethodLiveness);
     _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg);
+    System.out.println(_currentMethodInterferenceGraph);
     _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
-    _registerAllocator = _currentMethodRegisterAllocator.getColors();
+    _regAllocator = _currentMethodRegisterAllocator.getColors();
+    System.out.println(_currentMethodRegisterAllocator);
   }
 
   public void visit(IRLabel n)

@@ -72,7 +72,7 @@ public class MiniJavaCompiler
 
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
 
-        CodeGenerator codeGenerator = new CodeGenerator(irList, cfgBuilder.getCfgMap()); // TODO: placeholder for real cfgmap function name
+        CodeGenerator codeGenerator = new CodeGenerator(irList, cfgBuilder.getMethodToCFGMap()); // TODO: placeholder for real cfgmap function name
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         String outputFileName = args[1];
