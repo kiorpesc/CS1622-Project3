@@ -448,7 +448,7 @@ public class CodeGenerator implements IRVisitor {
 
       allocateForCurrentMethod(method);
 
-      if(method.getName != "main")
+      if(method.getName() != "main")
       {
         saveAllRegisters();
         clearRegisterMap();

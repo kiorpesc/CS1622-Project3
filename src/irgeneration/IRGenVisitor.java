@@ -112,10 +112,6 @@ public class IRGenVisitor {
   {
     _symbolTable.enterClass(n.i.s);  // enter the class scope
 
-    // add implicit 'this'
-    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
-    _symbolTable.addVariable(thisLocal);
-
     for(int i = 0; i < n.ml.size(); i++)  // process all methods
       n.ml.elementAt(i).accept(this);
 
@@ -126,10 +122,6 @@ public class IRGenVisitor {
   public SymbolInfo visit(ClassDeclExtends n)
   {
     _symbolTable.enterClass(n.i.s);  // enter the class scope
-
-    // add implicit 'this'
-    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(n.i.s));
-    _symbolTable.addVariable(thisLocal);
 
     for(int i = 0; i < n.ml.size(); i++)
       n.ml.elementAt(i).accept(this);
@@ -146,8 +138,9 @@ public class IRGenVisitor {
     _symbolTable.enterMethod(n.i.s);
 
     // add "this" to method variables - shortcut looking up class symbol
-    VariableSymbol thisVar = _symbolTable.getCurrentClass().getVariable("this");
-    _symbolTable.getCurrentMethod().addLocal(thisVar);
+    // add implicit 'this'
+    VariableSymbol thisLocal = new VariableSymbol("this", new IdentifierType(_symbolTable.getCurrentClass().getName()));
+    _symbolTable.addVariable(thisLocal);
 
     _ifCount = 0; // new method means no ifs encountered yet
     _loopCount = 0; // same for loops
