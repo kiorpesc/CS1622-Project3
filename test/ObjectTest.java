@@ -18,7 +18,7 @@ class Derp
         d = new Derpy();
         x = 3;
         System.out.println(this.foo()); // should print 3
-        System.out.println(d.nope()); // should print 5
+        System.out.println(d.nope()); // should print 7
         return x + 1;
     }
 
@@ -41,6 +41,7 @@ class Derpy extends Derp
     public int bar()
     {
         w = x + 1;
+        x = x + 2;
         return w;
     }
 }
