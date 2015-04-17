@@ -4,20 +4,23 @@ import java.util.*;
 
 import controlflow.*;
 import irgeneration.*;
+import objectimpl.*;
 import symboltable.*;
 
 public class ConstantPropagator
 {
     private boolean _optimized = false;
 
-    public ConstantPropagator(List<IRQuadruple> irList, List<ControlFlowGraph> cfgs)
+    public ConstantPropagator(List<IRQuadruple> irList, List<ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
     {
         List<Integer> copyIndices = new ArrayList<Integer>();
 
         for (int i = 0; i < irList.size(); ++i)
         {
             IRQuadruple irq = irList.get(i);
-            if (isConstantCopy(irq))
+            // don't even try to do constant propagation for instance variables, since
+            // method calls in between uses/defs can change their value
+            if (isConstantCopy(irq) && !objLayoutMgr.isInstanceVariable(irq.getResult()))
             {
                 copyIndices.add(i);
             }

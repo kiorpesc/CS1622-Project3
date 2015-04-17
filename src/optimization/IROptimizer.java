@@ -45,7 +45,7 @@ public class IROptimizer
             cfgBuilder = new ControlFlowGraphBuilder(_irList);
             cfgs = cfgBuilder.getControlFlowGraphs();
         }
-        ConstantPropagator prop = new ConstantPropagator(_irList, cfgs);
+        ConstantPropagator prop = new ConstantPropagator(_irList, cfgs, _objLayoutMgr);
         // don't need to rebuild CFG, since propagating just changes
         // arguments
         DeadCodeEliminator elim = new DeadCodeEliminator(_irList, cfgs, _objLayoutMgr);

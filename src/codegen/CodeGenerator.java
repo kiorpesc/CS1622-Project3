@@ -189,7 +189,9 @@ public class CodeGenerator implements IRVisitor {
       inst.append(regName);
       inst.append(", ");
       inst.append(_objLayoutMgr.getByteOffset(sym));
-      inst.append("($a0)\n");
+      inst.append("(");
+      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
+      inst.append(")\n");
       return regName;
     }
     return getAllocatedRegister(sym);
