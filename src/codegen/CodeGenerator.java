@@ -448,8 +448,11 @@ public class CodeGenerator implements IRVisitor {
 
       allocateForCurrentMethod(method);
 
-      saveAllRegisters();
-      clearRegisterMap();
+      if(method.getName != "main")
+      {
+        saveAllRegisters();
+        clearRegisterMap();
+      }
 
 
 

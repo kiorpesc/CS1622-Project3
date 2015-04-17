@@ -11,7 +11,7 @@ public class ConstantPropagator
 {
     private boolean _optimized = false;
 
-    public ConstantPropagator(List<IRQuadruple> irList, List<ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
+    public ConstantPropagator(List<IRQuadruple> irList, Collection<ControlFlowGraph> cfgs, ObjectLayoutManager objLayoutMgr)
     {
         List<Integer> copyIndices = new ArrayList<Integer>();
 
