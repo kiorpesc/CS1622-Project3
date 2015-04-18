@@ -36,7 +36,7 @@ public class RegisterAllocator {
     int iterationCount = 0;
 
     simplify();
-    while(!_graph.isEmpty() && coalesceCount < 5)
+    while(!_graph.isEmpty() && coalesceCount < 20)
     {
       int sizeBefore = _graph.getSize();
       coalesce();
