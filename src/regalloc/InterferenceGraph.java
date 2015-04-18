@@ -52,6 +52,7 @@ public class InterferenceGraph {
         processLiveIn(block);   // add regular interferences to the interference graph
         processLiveOut(block);
       }
+      patchInstanceVariables();
     }
 
     private void patchInstanceVariables()
@@ -107,82 +108,87 @@ public class InterferenceGraph {
       aInterferences.remove(b);
     }
 
-    private void replaceInterference(SymbolInfo neighbor, SymbolInfo nodeA, SymbolInfo nodeB)
+    private void replaceInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
     {
-      if(_graph.get(neighbor).contains(nodeA))
+      for(SymbolInfo key : _graph.keySet())
       {
-        _graph.get(neighbor).remove(nodeA);
-        _graph.get(neighbor).add(nodeB);
+        Set<SymbolInfo> neighbors = new HashSet<SymbolInfo>(_graph.get(key)); // make copy
+        for(SymbolInfo neighbor : neighbors)
+        {
+          if(neighbor.equals(nodeA))
+          {
+            _graph.get(key).remove(nodeA);
+            _graph.get(key).add(nodeB);
+          }
+        }
       }
     }
 
-    private void replaceMoveInterference(SymbolInfo neighbor, SymbolInfo nodeA, SymbolInfo nodeB)
+    private void replaceMoveInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
     {
-      if(_moves.get(neighbor).contains(nodeA))
+      for(SymbolInfo key : _moves.keySet())
       {
-        _moves.get(neighbor).remove(nodeA);
-        _moves.get(neighbor).add(nodeB);
+        Set<SymbolInfo> moves = new HashSet<SymbolInfo>(_moves.get(key));
+        for(SymbolInfo move : moves)
+        {
+          if(move.equals(nodeA))
+          {
+            _moves.get(key).remove(nodeA);
+            _moves.get(key).add(nodeB);
+          }
+        }
       }
     }
 
     // add all of nodeB's interferences to nodeA
-        public void addAllInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
-        {
-          Set<SymbolInfo> aNeighbors = _graph.get(nodeA);
-          Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
-          if(aNeighbors == null)
-          {
-            aNeighbors = new HashSet<SymbolInfo>();
-            _graph.put(nodeA, aNeighbors);
-          }
-          if(bNeighbors != null)
-          {
-            aNeighbors.addAll(bNeighbors);
-            // any nodes that had nodeB as an interference now need to have nodeA
-            for(SymbolInfo bNeighbor : bNeighbors)
-            {
-              replaceInterference(bNeighbor, nodeB, nodeA);
-            }
-          }
-          aNeighbors.remove(nodeA); // remove trivial interferences
-          aNeighbors.remove(nodeB);
-        }
+    public void addAllInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
+    {
+      Set<SymbolInfo> aNeighbors = _graph.get(nodeA);
+      Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
+      if(aNeighbors == null)
+      {
+        aNeighbors = new HashSet<SymbolInfo>();
+        _graph.put(nodeA, aNeighbors);
+      }
+      if(bNeighbors != null)
+      {
+        aNeighbors.addAll(bNeighbors);
+        // any nodes that had nodeB as an interference now need to have nodeA
+        replaceInterferences(nodeB, nodeA);
 
-        // add all of nodeB's move interferences to nodeA
-        public void addAllMoveInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
-        {
-          Set<SymbolInfo> aMoves = _moves.get(nodeA);
-          Set<SymbolInfo> bMoves = _moves.get(nodeB);
-          if(aMoves == null)
-          {
-            aMoves = new HashSet<SymbolInfo>();
-            _moves.put(nodeA, aMoves);
-          }
-          if(bMoves != null)
-          {
-            aMoves.addAll(bMoves);
-            // any nodes that had nodeB as an interference now need to have nodeA
-            for(SymbolInfo bMove : bMoves)
-            {
-              replaceInterference(bMove, nodeB, nodeA);
-            }
-          }
-          aMoves.remove(nodeA); // remove trivial interferences
-          aMoves.remove(nodeB);
-        }
+      }
+      aNeighbors.remove(nodeA); // remove trivial interferences
+      aNeighbors.remove(nodeB);
+    }
+
+    // add all of nodeB's move interferences to nodeA
+    public void addAllMoveInterferences(SymbolInfo nodeA, SymbolInfo nodeB)
+    {
+      Set<SymbolInfo> aMoves = _moves.get(nodeA);
+      Set<SymbolInfo> bMoves = _moves.get(nodeB);
+      if(aMoves == null)
+      {
+        aMoves = new HashSet<SymbolInfo>();
+        _moves.put(nodeA, aMoves);
+      }
+      if(bMoves != null)
+      {
+        aMoves.addAll(bMoves);
+        // any nodes that had nodeB as an interference now need to have nodeA
+        replaceMoveInterferences(nodeB, nodeA);
+      }
+      aMoves.remove(nodeA); // remove trivial interferences
+      aMoves.remove(nodeB);
+    }
 
     public void coalesceNodes(SymbolInfo nodeA, SymbolInfo nodeB)
     {
       System.out.println("combining " + nodeA.getName() + " and " + nodeB.getName());
       Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
       Set<SymbolInfo> bMoves = _moves.get(nodeB);
+
       addAllInterferences(nodeA, nodeB);
       addAllMoveInterferences(nodeA, nodeB);
-
-      _graph.get(nodeA).remove(nodeA); // remove trivial self-interferences
-      _graph.get(nodeA).remove(nodeB);
-      _moves.get(nodeA).remove(nodeA); // same for trivial self move interferences
-      _moves.get(nodeA).remove(nodeB);
 
       // now remove nodeB from the graph entirely
       removeNode(nodeB);

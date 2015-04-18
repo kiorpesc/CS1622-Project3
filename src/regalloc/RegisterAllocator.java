@@ -160,6 +160,7 @@ public class RegisterAllocator {
   // George coalescing
   private boolean _coalesce()
   {
+    System.out.println("_coalesce : " + _graph.getNodes() + "\n" + _graph.getMoveNodes());
     boolean canCombine;
     Set<SymbolInfo> moveNodes = new HashSet<SymbolInfo>(_graph.getMoveNodes());
     for(SymbolInfo nodeA : moveNodes)
