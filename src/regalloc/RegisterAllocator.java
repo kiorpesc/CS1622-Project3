@@ -184,6 +184,7 @@ public class RegisterAllocator {
     {
       coalesced = _coalesce();
     }
+    //System.out.println(_coalesced);
   }
 
   // TODO: what else needs to be done when a node is marked non-move?
@@ -224,11 +225,16 @@ public class RegisterAllocator {
         System.out.println("Spill occurred from STACK - this should not occur.");
       } else {
         colorized++;
+        System.out.println("Colorizing : " + nextToAdd.getName());
         _colors.put(nextToAdd, color);
         if(_coalesced.containsKey(nextToAdd)) // colorize any nodes that have been combined into this one
         {
+          System.out.println("Colorizing combined nodes for : " + nextToAdd.getName());
           for(SymbolInfo copy : _coalesced.get(nextToAdd))
+          {
+            System.out.println("    Colorizing : " + copy.getName());
             _colors.put(copy, color);
+          }
         }
         _graph.addNode(nextToAdd); // add the node back to the graph
       }
@@ -298,7 +304,7 @@ public class RegisterAllocator {
   public String toString()
   {
     StringBuilder output = new StringBuilder("============ Register Allocations ==========\n");
-    for(SymbolInfo node : _graph.getNodes())
+    for(SymbolInfo node : _colors.keySet())
     {
       output.append(node.getName());
       output.append(" : $");

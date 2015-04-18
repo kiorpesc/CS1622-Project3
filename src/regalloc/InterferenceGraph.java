@@ -18,6 +18,7 @@ public class InterferenceGraph {
     private LivenessAnalysis _liveRanges;
     private ControlFlowGraph _cfg;
     private ObjectLayoutManager _objLayoutManager;
+    private MethodSymbol _currentMethod;
 
     public InterferenceGraph(LivenessAnalysis la, ControlFlowGraph cfg, ObjectLayoutManager objlm)
     {
@@ -38,6 +39,11 @@ public class InterferenceGraph {
       for(BasicBlock block : cfgBlocks){               // for each block in the control flow graph
         for(IRQuadruple ir : block.getStatements())    // check whether there are any copies
         {
+          if(ir instanceof IRLabel)
+          {
+            if(((IRLabel)ir).isMethod())
+              _currentMethod = ((IRLabel)ir).getMethod();
+          }
           if(ir instanceof IRCopy)
           {
             checkCopyInterference((IRCopy)ir); // if there are move-related interferences, add them to the move graph
@@ -45,6 +51,25 @@ public class InterferenceGraph {
         }
         processLiveIn(block);   // add regular interferences to the interference graph
         processLiveOut(block);
+      }
+      //patchInstanceVariables();
+    }
+
+    private void patchInstanceVariables()
+    {
+      for(SymbolInfo var : _graph.keySet())
+      {
+        if(_objLayoutManager.isInstanceVariable(var))
+        {
+          _graph.get(var).add(_currentMethod.getVariable("this"));
+        }
+      }
+      for(SymbolInfo var : _moves.keySet())
+      {
+        if(_objLayoutManager.isInstanceVariable(var))
+        {
+          addEdge(var, _currentMethod.getVariable("this"));
+        }
       }
     }
 
@@ -54,7 +79,12 @@ public class InterferenceGraph {
       SymbolInfo arg = copyIR.getArg1();
       if(arg instanceof ConstantSymbol)
       {
-        // NOT a copy
+        // NOT a copy, BUT result still needs to be processed
+        if(!_graph.containsKey(result))
+        {
+          _graph.put(result, new HashSet<SymbolInfo>());
+          addNode(result);
+        }
       } else {
         addMoveInterference(result, arg);
         addMoveInterference(arg, result);
@@ -98,6 +128,7 @@ public class InterferenceGraph {
 
     public void coalesceNodes(SymbolInfo nodeA, SymbolInfo nodeB)
     {
+      System.out.println("combining " + nodeA.getName() + " and " + nodeB.getName());
       Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
       Set<SymbolInfo> bMoves = _moves.get(nodeB);
       if(bNeighbors != null)
@@ -283,6 +314,11 @@ public class InterferenceGraph {
       return interferences;
     }
 
+    public Map<SymbolInfo, Set<SymbolInfo>> getAllInterferences()
+    {
+      return _graph;
+    }
+
     public int getTotalSize()
     {
       //return _nodes.size() + _moves.size();
@@ -296,6 +332,10 @@ public class InterferenceGraph {
 
     public String toString()
     {
+
+      //System.out.println(_nodes);
+      //System.out.println(_moveNodes);
+
       StringBuilder output = new StringBuilder("========== INTERFERENCES: =========\n");
       for(SymbolInfo key : _nodes)
       {
