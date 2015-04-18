@@ -30,10 +30,29 @@ public class RegisterAllocator {
 
   private void colorize()
   {
-    // simplify
+
+    boolean freezeNow = false;
+    int coalesceCount = 0;
+    int iterationCount = 0;
+
     simplify();
-    // select
-    select();
+    while(!_graph.isEmpty() && coalesceCount < 5)
+    {
+      int sizeBefore = _graph.getSize();
+      coalesce();
+      coalesceCount++;
+      if(sizeBefore == _graph.getSize() && !_graph.isEmpty())
+        freeze();
+      simplify();
+    }
+    int colorized = select();
+    if(colorized == _graph.getSize())
+    {
+      System.out.println("Colored all nodes!");
+    } else {
+      System.out.println("SPILL OCCURRED, exiting...");
+      System.exit(1);
+    }
   }
 
   private void simplify()
@@ -51,14 +70,86 @@ public class RegisterAllocator {
 
   }
 
-  private void select()
+  private void coalesce()
   {
+    System.out.println("COALESCE");
+    boolean coalesced = true;
+    while(coalesced)
+    {
+      coalesced = _coalesce();
+    }
+  }
+
+  // use George coalesce
+  private boolean canCoalesce(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
+  {
+    boolean safeToCoalesce = true;
+    for(InterferenceGraphNode neighbor : nodeA.getInterferences())
+    {
+        if(nodeB.interferesWith(neighbor) || (neighbor.getDegree() < _numRegisters))
+        {
+          // this is safe
+        }
+        else
+        {
+          safeToCoalesce = false;
+        }
+    }
+    return safeToCoalesce;
+  }
+
+  private boolean _coalesce()
+  {
+    for(InterferenceGraphNode nodeA : _graph.getNodes())
+    {
+      if(nodeA.isMoveRelated())
+      {
+        for(InterferenceGraphNode nodeB : nodeA.getMoveInterferences())
+        {
+          // if nodes can be coalesced, do so
+          if(canCoalesce(nodeA, nodeB))
+          {
+            System.out.println("Combining " + nodeA.getSymbolName() + " and " + nodeB.getSymbolName());
+            _graph.coalesceNodes(nodeA, nodeB);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private void freeze()
+  {
+    InterferenceGraphNode nodeToFreeze = getNodeToFreeze();
+    if(nodeToFreeze != null)
+      _graph.freezeNode(nodeToFreeze);
+    else
+      System.out.println("UNABLE TO FREEZE NODE - SPILLTACULAR");
+  }
+
+  private InterferenceGraphNode getNodeToFreeze()
+  {
+    for(InterferenceGraphNode node : _graph.getNodes())
+    {
+      if(node.isMoveRelated() && node.getDegree() < _numRegisters)
+        return node;
+    }
+    return null;
+  }
+
+  private int select()
+  {
+    int colorized = 0;
     while(_nodeStack.size() > 0)
     {
       InterferenceGraphNode node = _nodeStack.pop();
       int color = getNewRegColor(node);
       if(color >= 0)
-        node.setColor(color);
+      {
+        node.setColor(color, _colors);
+        colorized++;
+      }
       else
       {
         //uncolorable node = spill
@@ -66,6 +157,7 @@ public class RegisterAllocator {
       }
       _graph.addNode(node);
     }
+    return colorized;
   }
 
   private int getNewRegColor(InterferenceGraphNode node)
@@ -91,7 +183,7 @@ public class RegisterAllocator {
   {
     for(InterferenceGraphNode node : _graph.getNodes())
     {
-      if(node.getDegree() < _numRegisters)
+      if(node.getDegree() < _numRegisters && !node.isMoveRelated())
         return node;
     }
     return null;
@@ -99,18 +191,17 @@ public class RegisterAllocator {
 
   public int getColor(SymbolInfo sym)
   {
-    System.out.println("getting color for " + sym);
-    return _graph.getNode(sym).getColor();
+    return _colors.get(sym);
   }
 
   public String toString()
   {
     StringBuilder output = new StringBuilder("========= REGISTER ALLOCATIONS ========\n");
-    for(InterferenceGraphNode node : _graph.getNodes())
+    for(SymbolInfo nodeSymbol : _colors.keySet())
     {
-      output.append(node.getSymbolName());
+      output.append(nodeSymbol.getName());
       output.append(" : $");
-      output.append(node.getColor());
+      output.append(_colors.get(nodeSymbol));
       output.append("\n");
     }
     return output.toString();

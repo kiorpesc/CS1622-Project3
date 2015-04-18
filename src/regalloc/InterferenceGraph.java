@@ -79,8 +79,14 @@ public class InterferenceGraph {
   {
     SymbolInfo result = statement.getResult();
     SymbolInfo arg1 = statement.getArg1();
-    getOrCreateNode(result);
-    getOrCreateNode(arg1);
+    InterferenceGraphNode resultNode = getOrCreateNode(result);
+    if(arg1 instanceof ConstantSymbol)
+    {
+      // nothing for now?
+    } else {
+      InterferenceGraphNode argNode = getOrCreateNode(arg1);
+      addMoveEdge(resultNode, argNode);
+    }
   }
 
   // process the live-in set
@@ -128,6 +134,18 @@ public class InterferenceGraph {
     nodeB.addInterference(nodeA);
   }
 
+  private void addMoveEdge(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
+  {
+    nodeA.addMoveInterference(nodeB);
+    nodeB.addMoveInterference(nodeA);
+  }
+
+  private void removeMoveEdge(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
+  {
+    nodeA.removeMoveInterference(nodeB);
+    nodeB.removeMoveInterference(nodeA);
+  }
+
   // get a specific node
   public InterferenceGraphNode getNode(SymbolInfo sym)
   {
@@ -156,9 +174,10 @@ public class InterferenceGraph {
     {
       InterferenceGraphNode nodeB = _graph.get(symB);
       if(nodeA.interferesWith(nodeB))
-      {
         nodeB.removeInterference(nodeA);
-      }
+
+      if(nodeA.moveInterferesWith(nodeB))
+        nodeB.removeMoveInterference(nodeA);
     }
     return nodeA;
   }
@@ -167,6 +186,52 @@ public class InterferenceGraph {
   public Collection<InterferenceGraphNode> getNodes()
   {
     return _graph.values();
+  }
+
+  public int getSize()
+  {
+    return _graph.keySet().size();
+  }
+
+  public boolean isEmpty()
+  {
+    return getSize() == 0;
+  }
+
+  // add all of nodeB's interferences to nodeA
+  private void addAllInterferences(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
+  {
+    for(InterferenceGraphNode neighbor : nodeB.getInterferences())
+    {
+      if(!nodeA.equals(neighbor))
+        addInterferenceEdge(nodeA, neighbor);
+    }
+    for(InterferenceGraphNode neighbor : nodeB.getMoveInterferences())
+    {
+      if(!nodeA.equals(neighbor))
+        addMoveEdge(nodeA, neighbor);
+    }
+  }
+
+  public void coalesceNodes(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
+  {
+    // add all interferences from nodeB to nodeA
+    addAllInterferences(nodeA, nodeB);
+    // then remove nodeB - this also removes b's interferences from the graph
+    removeNode(nodeB.getSymbol());
+    nodeA.removeInterference(nodeB);
+    nodeA.removeMoveInterference(nodeB);
+    nodeA.addCoalescedNode(nodeB);
+  }
+
+  public void freezeNode(InterferenceGraphNode nodeA)
+  {
+    for(InterferenceGraphNode nodeB : nodeA.getMoveInterferences())
+    {
+      addInterferenceEdge(nodeA, nodeB);  // the move interference is now a real interference
+      removeMoveEdge(nodeA, nodeB);       // so we can remove the old move interference
+    }
+    nodeA.freeze();
   }
 
   public String toString()
@@ -183,6 +248,22 @@ public class InterferenceGraph {
         output.append(" ");
       }
       output.append("\n");
+    }
+    output.append("================ MOVES ===============\n");
+    for(SymbolInfo sym : _graph.keySet())
+    {
+      if(_graph.get(sym).isMoveRelated())
+      {
+        output.append("NODE: ");
+        output.append(sym.getName());
+        output.append("   :::   ");
+        for(InterferenceGraphNode node : _graph.get(sym).getMoveInterferences())
+        {
+          output.append(node.toString());
+          output.append(" ");
+        }
+        output.append("\n");
+      }
     }
     return output.toString();
   }

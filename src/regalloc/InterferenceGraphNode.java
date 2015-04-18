@@ -50,14 +50,21 @@ public class InterferenceGraphNode {
     return _moveRelated;
   }
 
-  public void freezeNode()
+  public void freeze()
   {
     _moveRelated = false;
   }
 
   public boolean interferesWith(InterferenceGraphNode nodeB)
   {
-    if(_interferences.contains(nodeB) || _moveInterferences.contains(nodeB))
+    if(_interferences.contains(nodeB))
+      return true;
+    return false;
+  }
+
+  public boolean moveInterferesWith(InterferenceGraphNode nodeB)
+  {
+    if(_moveInterferences.contains(nodeB))
       return true;
     return false;
   }
@@ -65,6 +72,10 @@ public class InterferenceGraphNode {
   public void removeInterference(InterferenceGraphNode nodeB)
   {
     _interferences.remove(nodeB);
+  }
+
+  public void removeMoveInterference(InterferenceGraphNode nodeB)
+  {
     _moveInterferences.remove(nodeB);
   }
 
@@ -88,13 +99,20 @@ public class InterferenceGraphNode {
     return _interferences;
   }
 
-  public void setColor(int color)
+  public Set<InterferenceGraphNode> getMoveInterferences()
+  {
+    return _moveInterferences;
+  }
+
+  public void setColor(int color, Map<SymbolInfo, Integer> colorMap)
   {
     //set color for this and for all coalesced nodes
+    System.out.println("Setting color for " + _symbol.getName() + " to " + color);
     _color = color;
+    colorMap.put(_symbol, color);
     for(InterferenceGraphNode friend : _coalescedNodes)
     {
-      friend.setColor(color);
+      friend.setColor(color, colorMap);
     }
   }
 
