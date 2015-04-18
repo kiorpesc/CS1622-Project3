@@ -14,7 +14,7 @@ class Test2 {
       int f;
       int q;
       q = 0;
-      while(q < 10)
+      while(!(!(q < 10)))
       {
         q = q + 1;
         System.out.println(q);

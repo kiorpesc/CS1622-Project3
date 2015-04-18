@@ -212,32 +212,16 @@ public class CodeGenerator implements IRVisitor {
     return getAllocatedRegister(sym);
   }
 
-  private void instanceVariableAssignment(StringBuilder inst, IRAssignment n)
-  {
-    // TODO: get the register 'this' was allocated to
-    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
-    {
-      // TODO: handle the case where the result might be spilled?
-      inst.append("\nsw ");
-      inst.append(getAllocatedRegister(n.getResult()));
-      inst.append(", ");
-      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
-      inst.append("(");
-      inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
-      inst.append(")\n");
-    }
-  }
-
-  private void instanceVariableCopy(StringBuilder inst, IRCopy n)
+  private void instanceVariableAssignment(StringBuilder inst, SymbolInfo result)
   {
     // TODO: get the register 'this' was allocated to
     // TODO: handle the case where the result might be spilled?
-    if (_objLayoutMgr.isInstanceVariable(n.getResult()))
+    if (_objLayoutMgr.isInstanceVariable(result))
     {
       inst.append("\nsw ");
-      inst.append(getAllocatedRegister(n.getResult()));
+      inst.append(getAllocatedRegister(result));
       inst.append(", ");
-      inst.append(_objLayoutMgr.getByteOffset(n.getResult()));
+      inst.append(_objLayoutMgr.getByteOffset(result));
       inst.append("(");
       inst.append(getAllocatedRegister(_currentMethod.getVariable("this")));
       inst.append(")\n");
@@ -361,7 +345,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", ");
       inst.append(arg2RegName);
     }
-    instanceVariableAssignment(inst, n);
+    instanceVariableAssignment(inst, n.getResult());
     _mips.add(inst.toString());
   }
 
@@ -424,7 +408,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append(", $zero");
     }
 
-    instanceVariableCopy(inst, n);
+    instanceVariableAssignment(inst, n.getResult());
     _mips.add(inst.toString());
   }
 
@@ -576,7 +560,16 @@ public class CodeGenerator implements IRVisitor {
 
   public void visit(IRUnaryAssignment n)
   {
-    // wut
+    String resultReg = getAllocatedRegister(n.getResult());
+    StringBuilder inst = new StringBuilder();
+    String arg1RegName = getRegisterForValue(inst, n.getArg1());
+    inst.append("nor ");
+    inst.append(resultReg);
+    inst.append(", ");
+    inst.append(arg1RegName);
+    inst.append(", $0");
+    instanceVariableAssignment(inst, n.getResult());
+    _mips.add(inst.toString());
   }
 
   public void visit(IRUncondJump n)
