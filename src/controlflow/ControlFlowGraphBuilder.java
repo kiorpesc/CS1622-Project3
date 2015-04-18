@@ -150,8 +150,6 @@ public class ControlFlowGraphBuilder implements IRVisitor
     }
     public void visit(IRLabel n)
     {
-        System.out.println("label: " + n);
-        System.out.println("is method: " + n.isMethod());
         // check if our current block is non-empty
         if (!_currentBlock.isEmpty())
         {
