@@ -85,8 +85,7 @@ public class InterferenceGraph {
       // nothing for now?
     } else {
       InterferenceGraphNode argNode = getOrCreateNode(arg1);
-      if(!argNode.interferesWith(resultNode))
-        addMoveEdge(resultNode, argNode);
+      addMoveEdge(resultNode, argNode);
     }
   }
 

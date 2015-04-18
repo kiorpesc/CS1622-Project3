@@ -109,6 +109,12 @@ public class RegisterAllocator {
   private boolean canCoalesce(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
   {
     boolean safeToCoalesce = true;
+
+    if(nodeA.interferesWith(nodeB))
+    {
+      return false;
+    }
+
     for(InterferenceGraphNode neighbor : nodeA.getInterferences())
     {
         if(nodeB.interferesWith(neighbor) || (neighbor.getDegree() < _numRegisters))
