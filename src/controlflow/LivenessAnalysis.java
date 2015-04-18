@@ -2,6 +2,7 @@ package controlflow;
 
 import symboltable.*;
 import irgeneration.*;
+import objectimpl.*;
 
 import java.util.*;
 
@@ -14,13 +15,13 @@ public class LivenessAnalysis
     private Map<BasicBlock, Set<SymbolInfo>> _liveOut;
     private CFGDefsAndUses _defsAndUses;
 
-    public LivenessAnalysis(ControlFlowGraph graph)
+    public LivenessAnalysis(ControlFlowGraph graph, MethodSymbol method, ObjectLayoutManager objLayouts)
     {
         _liveIn = new HashMap<BasicBlock, Set<SymbolInfo>>();
         _liveOut = new HashMap<BasicBlock, Set<SymbolInfo>>();
         _defsAndUses = new CFGDefsAndUses(graph);
 
-        calculateLiveness(graph);
+        calculateLiveness(graph, method, objLayouts);
     }
 
     public Set<SymbolInfo> getLiveIn(BasicBlock b)
@@ -57,7 +58,7 @@ public class LivenessAnalysis
         return result.toString();
     }
 
-    private void calculateLiveness(ControlFlowGraph graph)
+    private void calculateLiveness(ControlFlowGraph graph, MethodSymbol method, ObjectLayoutManager objLayouts)
     {
         // initialize to empty sets
         for (BasicBlock b : graph.getAllBlocks())
@@ -74,8 +75,10 @@ public class LivenessAnalysis
             {
                 // get new in set
                 Set<SymbolInfo> newIn = computeLiveIn(b);
+                processInstanceVariables(newIn, method, objLayouts);
                 // get new out set
                 Set<SymbolInfo> newOut = computeLiveOut(graph, b);
+                processInstanceVariables(newOut, method, objLayouts);
 
                 // compare new live-in/out with the old sets
                 Set<SymbolInfo> oldIn = _liveIn.get(b);
@@ -118,5 +121,24 @@ public class LivenessAnalysis
         }
 
         return out;
+    }
+
+    // If symbols contains any instance variables, this method will add the 'this' symbol
+    // to symbols.
+    private void processInstanceVariables(Set<SymbolInfo> symbols, MethodSymbol method, ObjectLayoutManager objLayouts)
+    {
+        boolean hasInstance = false;
+        for (SymbolInfo sym : symbols)
+        {
+            if (objLayouts.isInstanceVariable(sym))
+            {
+                hasInstance = true;
+                break;
+            }
+        }
+
+        // add the 'this' symbol to the set of symbols.
+        if (hasInstance)
+            symbols.add(method.getVariable("this"));
     }
 }
