@@ -50,9 +50,34 @@ public class RegisterAllocator {
     {
       System.out.println("Colored all nodes!");
     } else {
-      System.out.println("SPILL OCCURRED, exiting...");
-      System.exit(1);
+      System.out.println("Attempting to color potential spills");
+      int actualSpills = tryToColorPotentialSpills();
+      if(actualSpills != 0)
+      {
+        System.out.println("SPILL OCCURRED, exiting...");
+        System.exit(1);
+      }
     }
+  }
+
+  private int tryToColorPotentialSpills()
+  {
+    int actualSpills = 0;
+    int color = -1;
+    for(InterferenceGraphNode node : _graph.getNodes())
+    {
+      if(!_colors.containsKey(node.getSymbol()))
+      {
+        color = getNewRegColor(node);
+        if(color < 0)
+        {
+          actualSpills++;
+        } else {
+          node.setColor(color, _colors);
+        }
+      }
+    }
+    return actualSpills;
   }
 
   private void simplify()
