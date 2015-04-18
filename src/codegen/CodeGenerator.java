@@ -26,12 +26,11 @@ public class CodeGenerator implements IRVisitor {
   private int _currentParam;
   private List<String> _mips;
   private List<IRQuadruple> _irList;
-  private Map<SymbolInfo, Integer> _regAllocator;
   private int _minRegister;
   private ControlFlowGraph _currentMethodCfg;
   private LivenessAnalysis _currentMethodLiveness;
   private InterferenceGraph _currentMethodInterferenceGraph;
-  private RegisterAllocator _currentMethodRegisterAllocator;
+  private RegisterAllocator _regAllocator;
   private int _numRegs;
   private ObjectLayoutManager _objLayoutMgr;
   private MethodSymbol _currentMethod = null;
@@ -79,7 +78,7 @@ public class CodeGenerator implements IRVisitor {
 
   private String getAllocatedRegister(SymbolInfo var)
   {
-    Integer regColor = _regAllocator.get(var);
+    Integer regColor = _regAllocator.getColor(var);
     if(regColor == null)
       return null;
 
@@ -134,7 +133,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append("sw $");
       inst.append(i);
       inst.append(" ");
-      inst.append((4*i));
+      inst.append((4*(i-8)));
       inst.append("($sp)\n");
     }
     _mips.add(inst.toString());
@@ -149,7 +148,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append("lw $");
       inst.append(i);
       inst.append(" ");
-      inst.append((4*i));
+      inst.append((4*(i-8)));
       inst.append("($sp)\n");
     }
     inst.append("addi $sp, $sp, 128");
@@ -424,9 +423,9 @@ public class CodeGenerator implements IRVisitor {
     //System.out.println(_currentMethodLiveness);
     _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg, _objLayoutMgr);
     System.out.println(_currentMethodInterferenceGraph);
-    _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
-    _regAllocator = _currentMethodRegisterAllocator.getColors();
-    System.out.println(_currentMethodRegisterAllocator);
+    _regAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
+    System.out.println(_currentMethodInterferenceGraph);
+    System.out.println(_regAllocator);
   }
 
   public void visit(IRLabel n)
@@ -439,26 +438,24 @@ public class CodeGenerator implements IRVisitor {
       // could do liveness analysis and register allocation here
 
       allocateForCurrentMethod(method);
-
+      StringBuilder inst;
       if(method.getName() != "main")
       {
         saveAllRegisters();
         clearRegisterMap();
+
+        // this FORCES the 'this' variable to be allocated a register - not ideal
+        VariableSymbol thisVar = method.getVariable("this");
+        String thisReg = getAllocatedRegister(thisVar);
+        if(thisReg != null) {
+          inst = new StringBuilder("add ");
+          inst.append(thisReg);
+          inst.append(", $a0, $zero");
+          _mips.add(inst.toString());
+        }
       }
-
-
 
       // move arguments into non-argument registers for safety
-      StringBuilder inst;
-      VariableSymbol thisVar = method.getVariable("this");
-      String thisReg = getAllocatedRegister(thisVar);
-      if(thisReg != null) {
-        inst = new StringBuilder("add ");
-        inst.append(thisReg);
-        inst.append(", $a0, $zero");
-        _mips.add(inst.toString());
-      }
-
       ArrayList<String> formals = method.getFormalNames();
 
       for(int i = 0; i < formals.size(); i++)
