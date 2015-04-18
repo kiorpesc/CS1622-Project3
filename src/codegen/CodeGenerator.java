@@ -173,7 +173,7 @@ public class CodeGenerator implements IRVisitor {
 
   private String getValueFromConstant(ConstantSymbol sym)
   {
-    String value = ((ConstantSymbol)sym).getValue();
+    String value = sym.getValue();
     // check for boolean
     switch (value.toLowerCase())
     {
@@ -529,7 +529,7 @@ public class CodeGenerator implements IRVisitor {
       inst.append("li ");
       inst.append(getParamRegister());
       inst.append(", ");
-      inst.append(((ConstantSymbol)n.getArg1()).getValue());
+      inst.append(getValueFromConstant((ConstantSymbol)n.getArg1()));
     }
     else
     {
