@@ -71,9 +71,12 @@ public class InterferenceGraph {
     if(statement.isMethod() && statement.getMethod().getName() != "main")
     {
       _currentMethod = statement.getMethod();
-      getOrCreateNode(statement.getMethod().getVariable("this"));
-      for(SymbolInfo formal : _currentMethod.getFormalSymbols())
-        getOrCreateNode(formal);
+      SymbolInfo thisVar = statement.getMethod().getVariable("this");
+      InterferenceGraphNode thisNode = getOrCreateNode(thisVar);
+      for(SymbolInfo formal : _currentMethod.getFormalSymbols()){
+        InterferenceGraphNode formalNode = getOrCreateNode(formal);
+        addInterferenceEdge(formalNode, thisNode);
+      }
     }
   }
 
@@ -228,7 +231,8 @@ public class InterferenceGraph {
 
   public void freezeNode(InterferenceGraphNode nodeA)
   {
-    for(InterferenceGraphNode nodeB : nodeA.getMoveInterferences())
+    Set<InterferenceGraphNode> aMoves = new HashSet<InterferenceGraphNode>(nodeA.getMoveInterferences());
+    for(InterferenceGraphNode nodeB : aMoves)
     {
       addInterferenceEdge(nodeA, nodeB);  // the move interference is now a real interference
       removeMoveEdge(nodeA, nodeB);       // so we can remove the old move interference
