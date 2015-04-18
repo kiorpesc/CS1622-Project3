@@ -570,7 +570,12 @@ public class CodeGenerator implements IRVisitor {
     inst.append(resultReg);
     inst.append(", ");
     inst.append(arg1RegName);
-    inst.append(", $0");
+    inst.append(", $0\n");
+    inst.append("andi ");
+    inst.append(resultReg);
+    inst.append(", ");
+    inst.append(resultReg);
+    inst.append(", 1");
     instanceVariableAssignment(inst, n.getResult());
     _mips.add(inst.toString());
   }
