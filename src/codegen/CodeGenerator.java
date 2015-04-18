@@ -172,22 +172,28 @@ public class CodeGenerator implements IRVisitor {
     }
   }
 
+  private String getValueFromConstant(ConstantSymbol sym)
+  {
+    String value = ((ConstantSymbol)sym).getValue();
+    // check for boolean
+    switch (value.toLowerCase())
+    {
+      case "true":
+        value = "1";
+        break;
+      case "false":
+        value = "0";
+        break;
+    }
+    return value;
+  }
+
   private String getRegisterForValue(StringBuilder inst, SymbolInfo sym)
   {
     if (sym instanceof ConstantSymbol)
     {
       inst.append("li $v1, ");
-      String value = ((ConstantSymbol)sym).getValue();
-      switch (value)
-      {
-        case "true":
-          value = "1";
-          break;
-        case "false":
-          value = "0";
-          break;
-      }
-      inst.append(value);
+      inst.append(getValueFromConstant((ConstantSymbol)sym));
       inst.append('\n');
       return "$v1";
     }
@@ -404,12 +410,12 @@ public class CodeGenerator implements IRVisitor {
   public void visit(IRCopy n)
   {
     StringBuilder inst = new StringBuilder();
-    if(n.getArg1().getSymbolType() == "constant")
+    if(n.getArg1() instanceof ConstantSymbol)
     {
       inst.append("li ");
       inst.append(getAllocatedRegister(n.getResult()));
       inst.append(", ");
-      inst.append(n.getArg1().getName());
+      inst.append(getValueFromConstant((ConstantSymbol)n.getArg1()));
     } else {
       inst.append("add ");
       inst.append(getAllocatedRegister(n.getResult()));
@@ -429,8 +435,6 @@ public class CodeGenerator implements IRVisitor {
     _currentMethodLiveness = new LivenessAnalysis(_currentMethodCfg, method, _objLayoutMgr);
     //System.out.println(_currentMethodLiveness);
     _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg, _objLayoutMgr);
-    //if(method.getName() != "main")
-    //  _currentMethodInterferenceGraph.addInstanceInterferences(method.getVariable("this"));
     System.out.println(_currentMethodInterferenceGraph);
     _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
     _regAllocator = _currentMethodRegisterAllocator.getColors();

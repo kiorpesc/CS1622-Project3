@@ -32,17 +32,6 @@ public class InterferenceGraph {
       buildInterferenceGraph();
     }
 
-    public void addInstanceInterferences(SymbolInfo thisVar)
-    {
-      Set<SymbolInfo> tempNodes = new HashSet<SymbolInfo>(_nodes);
-      for(SymbolInfo node : tempNodes)
-      {
-        if(_objLayoutManager.isInstanceVariable(node))
-          if(!node.equals(thisVar))
-            addEdge(node, thisVar);
-      }
-    }
-
     public void buildInterferenceGraph()
     {
       Set<BasicBlock> cfgBlocks = _cfg.getAllBlocks();
