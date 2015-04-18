@@ -107,7 +107,7 @@ public class InterferenceGraphNode {
   public void setColor(int color, Map<SymbolInfo, Integer> colorMap)
   {
     //set color for this and for all coalesced nodes
-    System.out.println("Setting color for " + _symbol.getName() + " to " + color);
+    //System.out.println("Setting color for " + _symbol.getName() + " to " + color);
     _color = color;
     colorMap.put(_symbol, color);
     for(InterferenceGraphNode friend : _coalescedNodes)
