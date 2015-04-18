@@ -55,6 +55,11 @@ public class MethodSymbol extends SymbolInfo
         return result;
     }
 
+    public Collection<VariableSymbol> getFormalSymbols()
+    {
+      return _formals.values();
+    }
+
     public Type getReturnType()
     {
         return _returnType;

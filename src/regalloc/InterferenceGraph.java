@@ -39,7 +39,7 @@ public class InterferenceGraph {
       for(IRQuadruple statement : block.getStatements())
       {
         if(statement instanceof IRLabel)
-          createThisNode((IRLabel)statement);
+          processLabel((IRLabel)statement);
         if(statement instanceof IRCopy)
           processCopyStatement((IRCopy)statement);
       }
@@ -66,12 +66,14 @@ public class InterferenceGraph {
   }
 
   // create a 'this' node for the current method (NOT main)
-  private void createThisNode(IRLabel statement)
+  private void processLabel(IRLabel statement)
   {
     if(statement.isMethod() && statement.getMethod().getName() != "main")
     {
       _currentMethod = statement.getMethod();
       getOrCreateNode(statement.getMethod().getVariable("this"));
+      for(SymbolInfo formal : _currentMethod.getFormalSymbols())
+        getOrCreateNode(formal);
     }
   }
 
