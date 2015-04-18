@@ -423,7 +423,7 @@ public class CodeGenerator implements IRVisitor {
     _currentMethodLiveness = new LivenessAnalysis(_currentMethodCfg, method, _objLayoutMgr);
     //System.out.println(_currentMethodLiveness);
     _currentMethodInterferenceGraph = new InterferenceGraph(_currentMethodLiveness, _currentMethodCfg, _objLayoutMgr);
-    System.out.println(_currentMethodInterferenceGraph);
+    //System.out.println(_currentMethodInterferenceGraph);
     _currentMethodRegisterAllocator = new RegisterAllocator(_currentMethodInterferenceGraph, _numRegs);
     _regAllocator = _currentMethodRegisterAllocator.getColors();
     System.out.println(_currentMethodRegisterAllocator);

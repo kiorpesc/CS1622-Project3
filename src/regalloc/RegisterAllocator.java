@@ -109,9 +109,20 @@ public class RegisterAllocator {
   {
     int numSignificantNeighbors = 0;
     Set<SymbolInfo> aNeighbors = _graph.getInterferences(nodeA);
+    //if(aNeighbors == null)
+    //  System.out.println("A : " + nodeA.getName() + " had no neighbor set");
+
     Set<SymbolInfo> bNeighbors = _graph.getInterferences(nodeB);
+    //if(bNeighbors == null)
+    //  System.out.println("B : " + nodeB.getName() + " had no neighbor set");
+
     Set<SymbolInfo> newNeighbors = new HashSet<SymbolInfo>(aNeighbors);
-    newNeighbors.addAll(bNeighbors);
+
+    if(bNeighbors != null)
+    {
+      //System.out.println("Adding all in : " + bNeighbors);
+      newNeighbors.addAll(bNeighbors);
+    }
 
     for(SymbolInfo neighbor : newNeighbors)
     {
@@ -133,7 +144,6 @@ public class RegisterAllocator {
 
   private boolean combine(SymbolInfo nodeA, SymbolInfo nodeB)
   {
-    System.out.println("combining " + nodeA.getName() + " and " + nodeB.getName() );
     // add all of b's interferences (move or otherwise) to a
     _graph.coalesceNodes(nodeA, nodeB);
 

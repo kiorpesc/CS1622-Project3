@@ -98,22 +98,31 @@ public class InterferenceGraph {
 
     public void coalesceNodes(SymbolInfo nodeA, SymbolInfo nodeB)
     {
-      _graph.get(nodeA).addAll(_graph.get(nodeB));
-      _moves.get(nodeA).addAll(_moves.get(nodeB));
+      Set<SymbolInfo> bNeighbors = _graph.get(nodeB);
+      Set<SymbolInfo> bMoves = _moves.get(nodeB);
+      if(bNeighbors != null)
+      {
+        _graph.get(nodeA).addAll(_graph.get(nodeB));
+        // any nodes that had nodeB as an interference now need to have nodeA
+        for(SymbolInfo bNeighbor : bNeighbors)
+        {
+          replaceInterference(bNeighbor, nodeB, nodeA);
+        }
+      }
+      if(bMoves != null)
+      {
+        _moves.get(nodeA).addAll(_moves.get(nodeB));
+        for(SymbolInfo bMoveNeighbor : bMoves)
+        {
+          replaceMoveInterference(bMoveNeighbor, nodeB, nodeA);
+        }
+      }
+
       _graph.get(nodeA).remove(nodeA); // remove trivial self-interferences
       _graph.get(nodeA).remove(nodeB);
       _moves.get(nodeA).remove(nodeA); // same for trivial self move interferences
       _moves.get(nodeA).remove(nodeB);
 
-      // any nodes that had nodeB as an interference now need to have nodeA
-      for(SymbolInfo bNeighbor : _graph.get(nodeB))
-      {
-        replaceInterference(bNeighbor, nodeB, nodeA);
-      }
-      for(SymbolInfo bMoveNeighbor : _moves.get(nodeB))
-      {
-        replaceMoveInterference(bMoveNeighbor, nodeB, nodeA);
-      }
 
       // now remove nodeB from the graph entirely
       removeNode(nodeB);
@@ -231,12 +240,18 @@ public class InterferenceGraph {
     // get the non-move degree of the symbol
     public int getDegree(SymbolInfo sym)
     {
-      return _graph.get(sym).size();
+      Set<SymbolInfo> neighbors = _graph.get(sym);
+      if(neighbors == null)
+        return 0;
+      return neighbors.size();
     }
 
     public int getMoveDegree(SymbolInfo sym)
     {
-      return _moves.get(sym).size();
+      Set<SymbolInfo> moves = _moves.get(sym);
+      if(moves == null)
+        return 0;
+      return moves.size();
     }
 
     // get the list of nodes
