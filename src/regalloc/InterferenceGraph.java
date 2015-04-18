@@ -168,10 +168,10 @@ public class InterferenceGraph {
         for(int j = i + 1; j < liveArray.length; j++)
         {
           SymbolInfo symB = (SymbolInfo)liveArray[j];
-          if(!_moves.containsKey(symA) || !_moves.get(symA).contains(symB))        // only add interference if it is not a move
-          {
+          //if(!_moves.containsKey(symA) || !_moves.get(symA).contains(symB))        // only add interference if it is not a move
+          //{
             addEdge(symA, symB);
-          }
+          //}
         }
       }
     }
@@ -190,7 +190,6 @@ public class InterferenceGraph {
     public void removeInterference(SymbolInfo a, SymbolInfo b)
     {
       Set<SymbolInfo> aInterferences = _graph.get(a);
-      System.out.println("Removing interference " + b.getName() + " from " + a.getName());
       aInterferences.remove(b);
     }
 
@@ -206,6 +205,8 @@ public class InterferenceGraph {
     // add a node to the node list (independent of the Maps)
     public void addNode(SymbolInfo node)
     {
+      if(node == null)
+        System.out.println("adding null node to set");
       _nodes.add(node);
     }
 
@@ -276,6 +277,17 @@ public class InterferenceGraph {
     {
       Set<SymbolInfo> interferences = _graph.get(a);
       return interferences;
+    }
+
+    public int getTotalSize()
+    {
+      //return _nodes.size() + _moves.size();
+      return _nodes.size();
+    }
+
+    public boolean isEmpty()
+    {
+      return getTotalSize() == 0;
     }
 
     public String toString()

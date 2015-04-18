@@ -35,21 +35,23 @@ public class RegisterAllocator {
     int coalesceCount = 0;
     int iterationCount = 0;
 
-    while(_graph.getNodes().size() != 0){ // potential spills
-      while(!freezeNow)
-      {
-        simplify();
-        if(_graph.getNodes().size() != 0)
-          coalesce();
-
-        if(coalesceCount == 5)
-          freezeNow = true;
-
-        coalesceCount++;
-      }
-      //freeze(); // pick low-degree move node and mark it as non-move, then loop back
+    simplify();
+    while(!_graph.isEmpty() && coalesceCount < 5)
+    {
+      int sizeBefore = _graph.getTotalSize();
+      coalesce();
+      coalesceCount++;
+      if(sizeBefore == _graph.getTotalSize() && !_graph.isEmpty())
+        freeze();
+      simplify();
     }
-    select();
+    int colorized = select();
+    if(colorized == _graph.getTotalSize())
+    {
+      System.out.println("Colored all nodes.");
+    } else {
+      System.out.println("SPILLLLLLLL");
+    }
   }
 
   private void printNodeStack()
@@ -86,7 +88,7 @@ public class RegisterAllocator {
   // for every neighbor t of a:
   //    t already interferes with b
   //    OR t is of insignificant degree
-  private boolean canCombine(SymbolInfo nodeA, SymbolInfo nodeB)
+  private boolean canCombineGeorge(SymbolInfo nodeA, SymbolInfo nodeB)
   {
     Set<SymbolInfo> aNeighbors = _graph.getInterferences(nodeA);
     Set<SymbolInfo> bNeighbors = _graph.getInterferences(nodeB);
@@ -98,6 +100,34 @@ public class RegisterAllocator {
           return false;
       }
     }
+    if(doesNotInterfereWith(nodeA, nodeB))
+      return true;
+    return false;
+  }
+
+  private boolean canCombineBriggs(SymbolInfo nodeA, SymbolInfo nodeB)
+  {
+    int numSignificantNeighbors = 0;
+    Set<SymbolInfo> aNeighbors = _graph.getInterferences(nodeA);
+    Set<SymbolInfo> bNeighbors = _graph.getInterferences(nodeB);
+    Set<SymbolInfo> newNeighbors = new HashSet<SymbolInfo>(aNeighbors);
+    newNeighbors.addAll(bNeighbors);
+
+    for(SymbolInfo neighbor : newNeighbors)
+    {
+      if(_graph.getDegree(neighbor) >= _numRegisters)
+        numSignificantNeighbors++;
+    }
+
+    if(numSignificantNeighbors < _numRegisters && doesNotInterfereWith(nodeA, nodeB))
+      return true;
+    return false;
+  }
+
+  private boolean doesNotInterfereWith(SymbolInfo nodeA, SymbolInfo nodeB)
+  {
+    if(_graph.getInterferences(nodeA).contains(nodeB))
+      return false;
     return true;
   }
 
@@ -121,12 +151,13 @@ public class RegisterAllocator {
   private boolean _coalesce()
   {
     boolean canCombine;
-    for(SymbolInfo nodeA : _graph.getMoveNodes())
+    Set<SymbolInfo> moveNodes = new HashSet<SymbolInfo>(_graph.getMoveNodes());
+    for(SymbolInfo nodeA : moveNodes)
     {
       Set<SymbolInfo> aMoves = new HashSet(_graph.getMoves(nodeA)); // get a COPY of the set of move interferences from this node
       for(SymbolInfo nodeB : aMoves)
       {
-        if(canCombine(nodeA, nodeB))
+        if(canCombineBriggs(nodeA, nodeB))
         {
           return combine(nodeA, nodeB);
         }
@@ -149,7 +180,8 @@ public class RegisterAllocator {
   private void freeze()
   {
     SymbolInfo moveNode = getNodeToFreeze();
-    _graph.freezeNode(moveNode);
+    if(moveNode != null)
+      _graph.freezeNode(moveNode);
   }
 
   private SymbolInfo getNodeToFreeze()
@@ -164,8 +196,9 @@ public class RegisterAllocator {
     return null;
   }
 
-  private void select()
+  private int select()
   {
+    int colorized = 0;
     SymbolInfo nextToAdd;
     while(_nodeStack.size() > 0)
     {
@@ -180,6 +213,7 @@ public class RegisterAllocator {
         // since this node is from the stack, this should not occur - potential spills were not on the stack
         System.out.println("Spill occurred from STACK - this should not occur.");
       } else {
+        colorized++;
         _colors.put(nextToAdd, color);
         if(_coalesced.containsKey(nextToAdd)) // colorize any nodes that have been combined into this one
         {
@@ -210,11 +244,11 @@ public class RegisterAllocator {
       // shouldn't need to add any interferences, as they were never removed
     }
     */
+    return colorized;
   }
 
   private int getNewRegColor(SymbolInfo node)
   {
-    System.out.println("getting color for " + node.getName());
     Set<SymbolInfo> interferences = _graph.getInterferences(node);
     if(interferences == null){
       return 0;
