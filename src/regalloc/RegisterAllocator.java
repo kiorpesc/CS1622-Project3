@@ -222,7 +222,7 @@ public class RegisterAllocator {
 
   public int getColor(SymbolInfo sym)
   {
-    System.out.println("Getting color for " + sym.getName());
+    //System.out.println("Getting color for " + sym.getName());
     return _colors.get(sym);
   }
 

@@ -90,7 +90,8 @@ public class InterferenceGraph {
       // nothing for now?
     } else {
       InterferenceGraphNode argNode = getOrCreateNode(arg1);
-      addMoveEdge(resultNode, argNode);
+      if(!_objLayoutManager.isInstanceVariable(result) && !_objLayoutManager.isInstanceVariable(arg1))
+        addMoveEdge(resultNode, argNode);
     }
   }
 
