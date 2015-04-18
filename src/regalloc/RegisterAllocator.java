@@ -154,7 +154,7 @@ public class RegisterAllocator {
     Set<SymbolInfo> moveNodes = new HashSet<SymbolInfo>(_graph.getMoveNodes());
     for(SymbolInfo nodeA : moveNodes)
     {
-      Set<SymbolInfo> aMoves = new HashSet(_graph.getMoves(nodeA)); // get a COPY of the set of move interferences from this node
+      Set<SymbolInfo> aMoves = new HashSet<SymbolInfo>(_graph.getMoves(nodeA)); // get a COPY of the set of move interferences from this node
       for(SymbolInfo nodeB : aMoves)
       {
         if(canCombineBriggs(nodeA, nodeB))
