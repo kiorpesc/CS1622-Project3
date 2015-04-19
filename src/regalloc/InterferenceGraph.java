@@ -47,8 +47,6 @@ public class InterferenceGraph {
       processLiveIn(block);
       processLiveOut(block);
     }
-    patchThisLiveness();
-    patchInstanceVariables();
   }
 
   // HACK: make this interfere with everything in a method
@@ -95,15 +93,6 @@ public class InterferenceGraph {
       _currentMethod = statement.getMethod();
       SymbolInfo thisVar = statement.getMethod().getVariable("this");
       InterferenceGraphNode thisNode = getOrCreateNode(thisVar);
-      for(SymbolInfo formal : _currentMethod.getFormalSymbols()){
-        InterferenceGraphNode formalNode = getOrCreateNode(formal);
-        addInterferenceEdge(formalNode, thisNode);
-      }
-      for(SymbolInfo local : _currentMethod.getLocalSymbols())
-      {
-        InterferenceGraphNode localNode = getOrCreateNode(local);
-        addInterferenceEdge(localNode, thisNode);
-      }
     }
   }
 
@@ -117,11 +106,8 @@ public class InterferenceGraph {
       // nothing for now?
     } else {
       InterferenceGraphNode argNode = getOrCreateNode(arg1);
-      if(!_objLayoutManager.isInstanceVariable(result) && !_objLayoutManager.isInstanceVariable(arg1))
-        addMoveEdge(resultNode, argNode);
+      addMoveEdge(resultNode, argNode);
     }
-    //if(_objLayoutManager.isInstanceVariable(result))
-    //  interfereWithEverything(resultNode)
   }
 
   // process the live-in set
