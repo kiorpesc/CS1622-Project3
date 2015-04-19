@@ -48,6 +48,7 @@ public class InterferenceGraph {
       processLiveOut(block);
     }
     patchThisLiveness();
+    patchInstanceVariables();
   }
 
   // HACK: make this interfere with everything in a method
@@ -65,6 +66,27 @@ public class InterferenceGraph {
     }
   }
 
+  // HACK: instance vars will now also interfere with everything
+  private void patchInstanceVariables()
+  {
+    for(InterferenceGraphNode nodeA : getNodes())
+    {
+      if(_objLayoutManager.isInstanceVariable(nodeA.getSymbol()))
+      {
+        interfereWithEverything(nodeA);
+      }
+    }
+  }
+
+  private void interfereWithEverything(InterferenceGraphNode nodeA)
+  {
+    for(InterferenceGraphNode nodeB : getNodes())
+    {
+      if(!nodeB.equals(nodeA))
+        addInterferenceEdge(nodeA, nodeB);
+    }
+  }
+
   // create a 'this' node for the current method (NOT main)
   private void processLabel(IRLabel statement)
   {
@@ -76,6 +98,11 @@ public class InterferenceGraph {
       for(SymbolInfo formal : _currentMethod.getFormalSymbols()){
         InterferenceGraphNode formalNode = getOrCreateNode(formal);
         addInterferenceEdge(formalNode, thisNode);
+      }
+      for(SymbolInfo local : _currentMethod.getLocalSymbols())
+      {
+        InterferenceGraphNode localNode = getOrCreateNode(local);
+        addInterferenceEdge(localNode, thisNode);
       }
     }
   }
@@ -93,6 +120,8 @@ public class InterferenceGraph {
       if(!_objLayoutManager.isInstanceVariable(result) && !_objLayoutManager.isInstanceVariable(arg1))
         addMoveEdge(resultNode, argNode);
     }
+    //if(_objLayoutManager.isInstanceVariable(result))
+    //  interfereWithEverything(resultNode)
   }
 
   // process the live-in set
@@ -156,6 +185,11 @@ public class InterferenceGraph {
   public InterferenceGraphNode getNode(SymbolInfo sym)
   {
     return _graph.get(sym);
+  }
+
+  public boolean isInstanceVar(InterferenceGraphNode node)
+  {
+    return _objLayoutManager.isInstanceVariable(node.getSymbol());
   }
 
   // ad a node to the graph, and add all of its interferences to its neighbors
