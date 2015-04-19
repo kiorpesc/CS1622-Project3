@@ -1,36 +1,47 @@
-CS1622 Project 3b
+CS1622 Project 3c
 Charles Kiorpes & Sheridan Zivanovich
 crk57@pitt.edu & sdz5@pitt.edu
 
 - BUILDING
     To build on linux, run the following command:
-        
-        $ make linux 
+
+        $ make linux
 
     To build on Windows, run the following command:
-        
+
         $ make win
 
     To clean, run the following command:
-        
+
         $ make clean
 
 - RUNNING
     To run our compiler on linux, use the following command:
 
-        $ ./linuxcompile.sh <MiniJava source file>
+        $ ./linuxcompile.sh <MiniJava source file> <destination file name>
 
     To run our compiler on windows, use the following command:
 
-        $ ./compile.sh <MiniJava source file>
+        $ ./compile.sh <MiniJava source file> <destination file name>
 
-    The main class is located in MiniJavaCompiler.java. You can run the program without the shell scripts, but you will need to construct the classpath appropriately (see compile.sh for an example of the classpath). 
+    The main class is located in MiniJavaCompiler.java. You can run the program without the shell scripts, but you will need to construct the classpath appropriately (see compile.sh for an example of the classpath).
+
+    To run with optimizations, add the -O1 flag to the command line arguments to the script. For example, to compile with optimizations on Windows:
+
+        $ ./compile.sh <MiniJava source file> <destination file name> -O1
+
+    See the Notes section for information about the optimization implemented.
 
 NOTES:
-    While we were able to continue error checking through parsing and into type checking for the majority of cases, we were unable to fully handle some compounded errors (particularly involving complex parse errors). For example, declaring a method with a parse error in the formal list, as well as an omitted return statement, will cause the parser to crash. 
-    
-    We included labels in our IR, to be used later if needed.
+    We completed the following Milestones:
+        Milestone 1
+        Milestone 2
+        Milestone 3
+        Milestone 4
+        Milestone 5
+        RegAlloc Milestone 1 (Milestone 6)
+        Regalloc Milestone 2 (Milestone 7)
+        Objects and Arrays   (Milestone 9)
+        Optimization         (Milestone 10)
 
-    Concerning the following error message:
-    "Invalid operands for %s operator, at line %d, character %d"
-    We felt as though this error message was redundant, considering the only operators available in MiniJava are boolean and integer arithmetic operands, both of which have their own error messages. As such, we did not include this in our output. Attempting to use a class or method name as an operand will result in an error message specific to the operator. 
+    We did not complete RegAlloc Milestone 3 (Milestone 8). 
