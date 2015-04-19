@@ -50,12 +50,17 @@ private void colorize()
     }
   }
   select();
-  tryToColorPotentialSpills();
+  int spills = tryToColorPotentialSpills();
+  if(spills != 0)
+  {
+    System.out.println("An actual SPILL occurred, unable to continue.");
+    System.exit(0);
+  }
 }
 
   private void spill()
   {
-    System.out.println("SPILL");
+    //System.out.println("SPILL");
     InterferenceGraphNode toSpill = null;
     for(InterferenceGraphNode node : _graph.getNodes())
     {
