@@ -28,35 +28,45 @@ public class RegisterAllocator {
     colorize();
   }
 
-  private void colorize()
+private void colorize()
+{
+  boolean coalesced = false;
+  boolean simplified = false;
+  boolean frozen = false;
+
+  while(!_graph.isEmpty())
   {
+    simplified = false;
+    coalesced = false;
+    simplified = simplify();
+    if(!_graph.isEmpty())
+      coalesced = coalesce();
 
-    boolean freezeNow = false;
-    int coalesceCount = 0;
-    int iterationCount = 0;
-
-    simplify();
-    while(!_graph.isEmpty() && coalesceCount < 20)
+    if(!simplified && !coalesced)
     {
-      int sizeBefore = _graph.getSize();
-      coalesce();
-      coalesceCount++;
-      if(sizeBefore == _graph.getSize() && !_graph.isEmpty())
-        freeze();
-      simplify();
+      frozen = freeze();
+      if(!frozen)
+        spill();
     }
-    int colorized = select();
-    if(colorized == _graph.getSize())
+  }
+  select();
+  tryToColorPotentialSpills();
+}
+
+  private void spill()
+  {
+    System.out.println("SPILL");
+    InterferenceGraphNode toSpill = null;
+    for(InterferenceGraphNode node : _graph.getNodes())
     {
-      System.out.println("Colored all nodes!");
-    } else {
-      System.out.println("Attempting to color potential spills");
-      int actualSpills = tryToColorPotentialSpills();
-      if(actualSpills != 0)
-      {
-        System.out.println("SPILL OCCURRED, exiting...");
-        System.exit(1);
-      }
+      // any spill will do, but i needed an iterator to grab shit out of a set
+      toSpill = node;
+      break;
+    }
+    if(toSpill != null) {
+      toSpill.spill();
+      _graph.removeNode(toSpill.getSymbol());
+      _nodeStack.push(toSpill);
     }
   }
 
@@ -80,8 +90,10 @@ public class RegisterAllocator {
     return actualSpills;
   }
 
-  private void simplify()
+  private boolean simplify()
   {
+    System.out.println("SIMPLIFY");
+    boolean simplified = false;
     InterferenceGraphNode nextToRemove = getInsignificantNode();
     while(nextToRemove != null)
     {
@@ -89,20 +101,25 @@ public class RegisterAllocator {
       _graph.removeNode(nextToRemove.getSymbol());
       // push to stack
       _nodeStack.push(nextToRemove);
+      simplified = true;
       // get another one
       nextToRemove = getInsignificantNode();
     }
-
+    return simplified;
   }
 
-  private void coalesce()
+  private boolean coalesce()
   {
+    int coalesceCount = 0;
     System.out.println("COALESCE");
     boolean coalesced = true;
     while(coalesced)
     {
       coalesced = _coalesce();
+      if(coalesced)
+        coalesceCount++;
     }
+    return coalesceCount > 0;
   }
 
   // use George coalesce
@@ -150,13 +167,16 @@ public class RegisterAllocator {
     return false;
   }
 
-  private void freeze()
+  private boolean freeze()
   {
+    System.out.println("FREEZE");
     InterferenceGraphNode nodeToFreeze = getNodeToFreeze();
-    if(nodeToFreeze != null)
+    if(nodeToFreeze != null){
       _graph.freezeNode(nodeToFreeze);
+      return true;
+    }
     else
-      System.out.println("UNABLE TO FREEZE NODE - SPILLTACULAR");
+      return false;
   }
 
   private InterferenceGraphNode getNodeToFreeze()
@@ -175,16 +195,14 @@ public class RegisterAllocator {
     while(_nodeStack.size() > 0)
     {
       InterferenceGraphNode node = _nodeStack.pop();
-      int color = getNewRegColor(node);
-      if(color >= 0)
+      if(!node.isSpilled()) // if its a spill, just add it back without coloring it
       {
-        node.setColor(color, _colors);
-        colorized++;
-      }
-      else
-      {
-        //uncolorable node = spill
-        System.out.println("SPILLED from stack - should not have happened");
+        int color = getNewRegColor(node);
+        if(color >= 0)
+        {
+          node.setColor(color, _colors);
+          colorized++;
+        }
       }
       _graph.addNode(node);
     }

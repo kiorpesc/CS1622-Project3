@@ -17,6 +17,7 @@ public class InterferenceGraphNode {
   private Set<InterferenceGraphNode> _moveInterferences;
   private Set<InterferenceGraphNode> _coalescedNodes;
   private boolean _moveRelated;
+  private boolean _spilled;
   private int _color;
 
   public InterferenceGraphNode(SymbolInfo symbol)
@@ -26,6 +27,7 @@ public class InterferenceGraphNode {
     _moveInterferences = new HashSet<InterferenceGraphNode>();
     _coalescedNodes = new HashSet<InterferenceGraphNode>();
     _moveRelated = false;
+    _spilled = false;
     _color = -1;
   }
 
@@ -53,6 +55,21 @@ public class InterferenceGraphNode {
   public void freeze()
   {
     _moveRelated = false;
+  }
+
+  public void spill()
+  {
+    _spilled = true;
+  }
+
+  public void unSpill()
+  {
+    _spilled = false;
+  }
+
+  public boolean isSpilled()
+  {
+    return _spilled;
   }
 
   public boolean interferesWith(InterferenceGraphNode nodeB)
