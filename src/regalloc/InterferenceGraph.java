@@ -30,7 +30,6 @@ public class InterferenceGraph {
     buildInterferenceGraph();
   }
 
-  // build the interference graph
   private void buildInterferenceGraph()
   {
     Set<BasicBlock> cfgBlocks = _cfg.getAllBlocks();
@@ -38,15 +37,60 @@ public class InterferenceGraph {
     {
       for(IRQuadruple statement : block.getStatements())
       {
+        SymbolInfo result = statement.getResult();
+        if(result != null)
+        {
+          if(statement instanceof IRCopy)
+          {
+            //process live out variables
+            SymbolInfo arg1 = statement.getArg1();
+            processCopyLiveness(block, result, arg1);
+          } else {
+            processNonMoveLiveness(block, result);
+          }
+        }
         if(statement instanceof IRLabel)
           processLabel((IRLabel)statement);
-        if(statement instanceof IRCopy)
-          processCopyStatement((IRCopy)statement);
+        processLiveIn(block); // anything that is together in a live set probably can't exist at the same time
+        processLiveOut(block);
       }
-      // process live in and live out sets, build interference graph
-      processLiveIn(block);
-      processLiveOut(block);
     }
+  }
+
+/*  1. A non-move definition of a variable a with live-out variables b1, …, bn
+    Add edges (a, b1) … (a, bn)
+*/
+  private void processNonMoveLiveness(BasicBlock block, SymbolInfo result)
+  {
+    Set<SymbolInfo> liveOut = _liveRanges.getLiveOut(block);
+    InterferenceGraphNode resultNode = getOrCreateNode(result);
+    for(SymbolInfo sym : liveOut)
+    {
+      if(!sym.equals(result))
+      {
+        InterferenceGraphNode symNode = getOrCreateNode(result);
+        addInterferenceEdge(symNode, resultNode);
+      }
+    }
+  }
+
+  /* 2. A move a := c with live-out variables b1,…, bn
+    Add edges (a, b1) … (a, bn) for all bi ≠ c      */
+  private void processCopyLiveness(BasicBlock block, SymbolInfo result, SymbolInfo arg1)
+  {
+    Set<SymbolInfo> liveOut = _liveRanges.getLiveOut(block);
+    InterferenceGraphNode arg1Node = getOrCreateNode(arg1);
+    InterferenceGraphNode resultNode = getOrCreateNode(result);
+    for(SymbolInfo sym : liveOut)
+    {
+      if(!sym.equals(arg1))
+      {
+        InterferenceGraphNode symNode = getOrCreateNode(sym);
+        addInterferenceEdge(symNode, arg1Node);
+      }
+    }
+    if(!_objLayoutManager.isInstanceVariable(result) && !_objLayoutManager.isInstanceVariable(arg1))
+      addMoveEdge(arg1Node, resultNode);
   }
 
   // HACK: make this interfere with everything in a method
@@ -130,16 +174,17 @@ public class InterferenceGraph {
   private void processLiveSet(Set<SymbolInfo> liveSet)
   {
     SymbolInfo[] liveArray = liveSet.toArray(new SymbolInfo[0]);
+
     if(liveArray.length == 1)
       getOrCreateNode(liveArray[0]);
 
-    for(int i = 0; i < liveArray.length - 1; i++)
+    for(int i = 0; i < liveArray.length-1; i++)
     {
-      InterferenceGraphNode nodeA = getOrCreateNode(liveArray[i]); // create new node
-      for(int j = i+1; j < liveArray.length; j++)
+      InterferenceGraphNode symNode = getOrCreateNode(liveArray[i]);
+      for(int j = i; j < liveArray.length; j++)
       {
         InterferenceGraphNode nodeB = getOrCreateNode(liveArray[j]);
-        addInterferenceEdge(nodeA, nodeB);
+        addInterferenceEdge(symNode, nodeB);
       }
     }
   }
@@ -231,12 +276,15 @@ public class InterferenceGraph {
   // add all of nodeB's interferences to nodeA
   private void addAllInterferences(InterferenceGraphNode nodeA, InterferenceGraphNode nodeB)
   {
-    for(InterferenceGraphNode neighbor : nodeB.getInterferences())
+    Set<InterferenceGraphNode> nodeBInterferences = new HashSet<InterferenceGraphNode>(nodeB.getInterferences());
+    for(InterferenceGraphNode neighbor : nodeBInterferences)
     {
       if(!nodeA.equals(neighbor))
         addInterferenceEdge(nodeA, neighbor);
     }
-    for(InterferenceGraphNode neighbor : nodeB.getMoveInterferences())
+
+    Set<InterferenceGraphNode> nodeBMoves = new HashSet<InterferenceGraphNode>(nodeB.getMoveInterferences());
+    for(InterferenceGraphNode neighbor : nodeBMoves)
     {
       if(!nodeA.equals(neighbor))
         addMoveEdge(nodeA, neighbor);

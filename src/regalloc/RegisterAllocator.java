@@ -50,7 +50,12 @@ private void colorize()
     }
   }
   select();
-  tryToColorPotentialSpills();
+  int spills = tryToColorPotentialSpills();
+  if(spills != 0)
+  {
+    System.out.println("An actual SPILL occurred, unable to continue.");
+    System.exit(0);
+  }
 }
 
   private void spill()
@@ -92,7 +97,7 @@ private void colorize()
 
   private boolean simplify()
   {
-    System.out.println("SIMPLIFY");
+    //System.out.println("SIMPLIFY");
     boolean simplified = false;
     InterferenceGraphNode nextToRemove = getInsignificantNode();
     while(nextToRemove != null)
@@ -111,7 +116,7 @@ private void colorize()
   private boolean coalesce()
   {
     int coalesceCount = 0;
-    System.out.println("COALESCE");
+    //System.out.println("COALESCE");
     boolean coalesced = true;
     while(coalesced)
     {
@@ -169,7 +174,7 @@ private void colorize()
 
   private boolean freeze()
   {
-    System.out.println("FREEZE");
+    //System.out.println("FREEZE");
     InterferenceGraphNode nodeToFreeze = getNodeToFreeze();
     if(nodeToFreeze != null){
       _graph.freezeNode(nodeToFreeze);
