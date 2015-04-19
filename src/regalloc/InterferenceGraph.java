@@ -93,6 +93,10 @@ public class InterferenceGraph {
       _currentMethod = statement.getMethod();
       SymbolInfo thisVar = statement.getMethod().getVariable("this");
       InterferenceGraphNode thisNode = getOrCreateNode(thisVar);
+      for(SymbolInfo formal : _currentMethod.getFormalSymbols())
+        getOrCreateNode(formal);
+      //for(SymbolInfo local : _currentMethod.getLocalSymbols())
+        //getOrCreateNode(local);
     }
   }
 
