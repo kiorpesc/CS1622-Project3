@@ -2,6 +2,7 @@ package controlflow;
 
 import symboltable.*;
 import irgeneration.*;
+import objectimpl.*;
 
 import java.util.*;
 
@@ -11,13 +12,13 @@ public class CFGDefsAndUses
     private Map<BasicBlock, Set<SymbolInfo>> _defsPerBlock;
     private Map<BasicBlock, Set<SymbolInfo>> _usesPerBlock;
 
-    public CFGDefsAndUses(ControlFlowGraph graph)
+    public CFGDefsAndUses(ControlFlowGraph graph, ObjectLayoutManager objLayoutMgr)
     {
         _defsPerBlock = new HashMap<BasicBlock, Set<SymbolInfo>>();
         _usesPerBlock = new HashMap<BasicBlock, Set<SymbolInfo>>();
 
         for (BasicBlock b : graph.getAllBlocks())
-            computeUsesAndDefs(b);
+            computeUsesAndDefs(b, objLayoutMgr);
     }
 
     // get definitions for a block
@@ -57,9 +58,9 @@ public class CFGDefsAndUses
     }
 
     // compute usages and defs for a single block
-    private void computeUsesAndDefs(BasicBlock b)
+    private void computeUsesAndDefs(BasicBlock b, ObjectLayoutManager objLayoutMgr)
     {
-        DefsAndUsesVisitor visitor = new DefsAndUsesVisitor(b.getStatements());
+        DefsAndUsesVisitor visitor = new DefsAndUsesVisitor(b.getStatements(), objLayoutMgr);
         _defsPerBlock.put(b, visitor.getDefinitions());
         _usesPerBlock.put(b, visitor.getUsages());
     }
@@ -69,11 +70,13 @@ public class CFGDefsAndUses
     {
         private Set<SymbolInfo> _definitions;
         private Set<SymbolInfo> _usages;
+        private ObjectLayoutManager _objLayoutMgr;
 
-        public DefsAndUsesVisitor(List<IRQuadruple> irList)
+        public DefsAndUsesVisitor(List<IRQuadruple> irList, ObjectLayoutManager objLayoutMgr)
         {
             _definitions = new HashSet<SymbolInfo>();
             _usages = new HashSet<SymbolInfo>();
+            _objLayoutMgr = objLayoutMgr;
 
             for (IRQuadruple irq : irList)
                 irq.accept(this);
@@ -99,6 +102,10 @@ public class CFGDefsAndUses
         private void addDefinition(SymbolInfo sym)
         {
             _definitions.add(sym);
+            // for instance variables, a definition is also
+            // a usage.
+            if (_objLayoutMgr.isInstanceVariable(sym))
+                _usages.add(sym);
         }
 
         public void visit(IRArrayAssign n)

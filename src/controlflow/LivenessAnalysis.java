@@ -19,7 +19,7 @@ public class LivenessAnalysis
     {
         _liveIn = new HashMap<BasicBlock, Set<SymbolInfo>>();
         _liveOut = new HashMap<BasicBlock, Set<SymbolInfo>>();
-        _defsAndUses = new CFGDefsAndUses(graph);
+        _defsAndUses = new CFGDefsAndUses(graph, objLayouts);
 
         calculateLiveness(graph, method, objLayouts);
     }
