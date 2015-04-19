@@ -92,7 +92,7 @@ private void colorize()
 
   private boolean simplify()
   {
-    System.out.println("SIMPLIFY");
+    //System.out.println("SIMPLIFY");
     boolean simplified = false;
     InterferenceGraphNode nextToRemove = getInsignificantNode();
     while(nextToRemove != null)
@@ -111,7 +111,7 @@ private void colorize()
   private boolean coalesce()
   {
     int coalesceCount = 0;
-    System.out.println("COALESCE");
+    //System.out.println("COALESCE");
     boolean coalesced = true;
     while(coalesced)
     {
@@ -157,7 +157,7 @@ private void colorize()
           // if nodes can be coalesced, do so
           if(canCoalesce(nodeA, nodeB))
           {
-            System.out.println("Combining " + nodeA.getSymbolName() + " and " + nodeB.getSymbolName());
+            //System.out.println("Combining " + nodeA.getSymbolName() + " and " + nodeB.getSymbolName());
             _graph.coalesceNodes(nodeA, nodeB);
             return true;
           }
@@ -169,7 +169,7 @@ private void colorize()
 
   private boolean freeze()
   {
-    System.out.println("FREEZE");
+    //System.out.println("FREEZE");
     InterferenceGraphNode nodeToFreeze = getNodeToFreeze();
     if(nodeToFreeze != null){
       _graph.freezeNode(nodeToFreeze);

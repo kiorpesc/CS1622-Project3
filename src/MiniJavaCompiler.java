@@ -25,10 +25,12 @@ public class MiniJavaCompiler
         }
 
         args = parseFlags(args);
-
+        System.out.println("=========== COMPILING ===========");
+        System.out.println("Lexing and parsing source...");
         // parse the program
         Program program = parseProgram(args[0]);
 
+        System.out.println("Error checking and generating symbol table...");
         // build symbol table and check for semantic errors
         List<ErrorChecker> errorCheckers = new ArrayList<ErrorChecker>();
         ISymbolTable symbolTable = buildSymbolTableAndCheckErrors(program, errorCheckers);
@@ -54,10 +56,11 @@ public class MiniJavaCompiler
             return;
         }
 
+        System.out.println("Genterating IR...");
         // generate IR (3-address code)
         IRGenVisitor irGenerator = new IRGenVisitor((SymbolTable)symbolTable);
         irGenerator.visit(program);
-        irGenerator.printIRList();
+        //irGenerator.printIRList();
 
         // determine class variable offsets
         ObjectLayoutManager objLayoutMgr = new ObjectLayoutManager(symbolTable.getClasses());
@@ -66,21 +69,25 @@ public class MiniJavaCompiler
         List<IRQuadruple> irList = irGenerator.getIRList();
         if (_optimize)
         {
+            System.out.println("Optimizing IR...");
             irList = runOptimizations(irList, objLayoutMgr);
-            System.out.println("----- OPTIMIZED IR -----");
-            for (IRQuadruple irq : irList)
-            {
-                System.out.println(irq);
-            }
+            //System.out.println("----- OPTIMIZED IR -----");
+            //for (IRQuadruple irq : irList)
+            //{
+            //    System.out.println(irq);
+            //}
         }
 
+        System.out.println("Calculating liveness...");
         ControlFlowGraphBuilder cfgBuilder = new ControlFlowGraphBuilder(irList);
 
+
+        System.out.println("Allocating registers and generating code...");
         CodeGenerator codeGenerator = new CodeGenerator(irList, cfgBuilder.getMethodToCFGMap(), objLayoutMgr);
         codeGenerator.generateCode();
         //codeGenerator.printCode();
         String outputFileName = args[1];
-        System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----");
+        System.out.println("----- OUTPUTTING ASSEMBLY TO: " + outputFileName + " -----\n");
         codeGenerator.outputMIPSFile(outputFileName);
     }
 
